@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Baseline Collaboration Network Analysis · U.S. Space Sector</title>
+<style>
+  :root{
+    --ink:#16191d; --ink-2:#4a515b; --ink-3:#7b828c; --line:#e7e9ed; --bg:#ffffff; --bg-2:#f7f8f9;
+    --serif:"Iowan Old Style","Charter","Palatino Linotype","Book Antiqua",Georgia,serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,"Helvetica Neue",Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:14px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+  button{font:inherit;color:inherit}
+  .app{display:grid;grid-template-rows:auto 1fr;height:100vh;min-height:620px}
+  header{position:relative;padding:14px 28px 14px;border-bottom:1px solid var(--line)}
+  .site{font-size:12px;color:var(--ink-3);margin:0 0 6px;letter-spacing:.01em}
+  .nav span.soon{font-size:12px;font-weight:600;letter-spacing:.02em;color:#b8bec6;padding:4px 8px;cursor:default}
+  .disc{margin:6px 0 0;font-size:12px;color:var(--ink-3);font-style:italic}
+  .nav{display:flex;gap:4px;margin:0 0 10px -8px}
+  .nav a{font-size:12px;font-weight:600;letter-spacing:.02em;color:var(--ink-3);text-decoration:none;padding:4px 8px;border-radius:6px}
+  .nav a:hover{background:var(--bg-2);color:var(--ink)}
+  .nav a.on{color:var(--ink);background:var(--bg-2)}
+  h1{font:600 22px/1.25 var(--serif);letter-spacing:-.005em;margin:0;color:#0f1216;max-width:calc(100% - 300px)}
+  .hint{margin:5px 0 0;color:var(--ink-3);font-size:13px}
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin-top:14px}
+  .grp{display:flex;align-items:center;gap:8px}
+  .grp > .lab{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+  .seg{position:relative;display:flex;background:var(--bg-2);border:1px solid var(--line);border-radius:10px;padding:3px}
+  .seg button{position:relative;z-index:1;border:0;background:none;padding:6px 12px;border-radius:7px;cursor:pointer;font-size:13px;font-weight:550;color:var(--ink-3);transition:color .25s;white-space:nowrap}
+  .seg button.on{color:var(--ink)}
+  .seg .thumb{position:absolute;top:3px;bottom:3px;border-radius:7px;background:#fff;box-shadow:0 1px 2px rgba(16,24,40,.08),0 0 0 1px rgba(16,24,40,.06);transition:left .35s cubic-bezier(.4,0,.2,1),width .35s cubic-bezier(.4,0,.2,1)}
+  .search{position:absolute;right:28px;top:14px;width:260px;z-index:20}
+  .search input{width:100%;height:34px;border:1px solid var(--line);border-radius:10px;padding:0 12px 0 32px;font:inherit;font-size:13px;background:#fff;outline:none;transition:border-color .15s, box-shadow .15s}
+  .search input:focus{border-color:#b9c0ca;box-shadow:0 0 0 3px rgba(31,42,55,.06)}
+  .search svg{position:absolute;left:10px;top:10px;color:var(--ink-3)}
+  .results{position:absolute;top:38px;left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 32px rgba(16,24,40,.12);padding:4px;z-index:30;display:none;max-height:340px;overflow:auto}
+  .results.open{display:block}
+  .res{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:7px;cursor:pointer;font-size:13px}
+  .res.act{background:var(--bg-2)}
+  .res .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .res .tag{font-size:11px;color:var(--ink-3);white-space:nowrap}
+  .res.empty{color:var(--ink-3);cursor:default}
+  .dot{width:9px;height:9px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18);display:inline-block}
+
+  main{display:grid;grid-template-columns:minmax(0,1fr) 420px;min-height:0}
+  .panes{position:relative;display:flex;min-height:0;min-width:0;border-right:1px solid var(--line);background:radial-gradient(circle at 1px 1px,#eef0f3 1px,transparent 0) 0 0/22px 22px}
+  .pane{position:relative;flex:1;min-width:0;min-height:0;overflow:hidden}
+  .pane + .pane{border-left:1px solid var(--line)}
+  .pane svg{position:absolute;inset:0;width:100%;height:100%;cursor:grab;user-select:none;touch-action:none}
+  .pane svg.drag{cursor:grabbing}
+  .kicker{position:absolute;left:20px;top:14px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);font-weight:650;pointer-events:none;display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.85);padding:3px 8px 3px 6px;border-radius:6px}
+  .kicker .sw{width:14px;height:3px;border-radius:2px}
+  .panes.fade .pane{animation:fadeIn .45s ease}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  .bar{position:absolute;left:14px;right:14px;bottom:12px;display:flex;justify-content:space-between;align-items:flex-end;gap:10px;pointer-events:none;z-index:5}
+  .legend{display:flex;flex-wrap:wrap;gap:2px;background:rgba(255,255,255,.93);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:12px;padding:4px;pointer-events:auto}
+  .chip{display:flex;align-items:center;gap:7px;border:0;background:none;padding:4px 9px;border-radius:8px;cursor:pointer;font-size:12.5px;color:var(--ink-2);transition:background .15s,opacity .2s}
+  .chip:hover{background:var(--bg-2)}
+  .chip.off{opacity:.38}
+  .chip.off .dot{background:transparent!important}
+  .chip.reset{color:var(--ink-3);font-size:12px;display:none}
+  .chip.reset.show{display:flex}
+  .zoom{display:flex;flex-direction:column;background:rgba(255,255,255,.93);border:1px solid var(--line);border-radius:12px;padding:4px;pointer-events:auto}
+  .zoom button{width:32px;height:32px;border:0;background:none;border-radius:8px;cursor:pointer;color:var(--ink-2);display:grid;place-items:center}
+  .zoom button:hover{background:var(--bg-2)}
+  .lbl{font:600 11px var(--sans);fill:#1b1f24;paint-order:stroke;stroke:#fff;stroke-width:3.2px;stroke-linejoin:round;pointer-events:none;text-anchor:middle;dominant-baseline:central}
+  .node circle{cursor:pointer}
+
+  .tip{position:fixed;z-index:50;pointer-events:none;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 36px rgba(16,24,40,.14);padding:10px 13px;max-width:320px;opacity:0;transform:translateY(4px);transition:opacity .12s, transform .12s}
+  .tip.show{opacity:1;transform:none}
+  .tip .t1{font-weight:650;font-size:13.5px;display:flex;align-items:center;gap:7px}
+  .tip .t2{font-size:12px;color:var(--ink-3);margin-top:2px}
+  .tip .t3{font-size:12.5px;color:var(--ink-2);margin-top:6px;font-variant-numeric:tabular-nums}
+
+  aside{overflow:auto;min-height:0;background:#fff}
+  .pn{padding:22px 24px 40px}
+  .k{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+  .pn h2{font:600 20px/1.25 var(--serif);margin:5px 0 6px;color:#0f1216}
+  .lead{color:var(--ink-2);font-size:13px;margin:0}
+  .sec{margin-top:24px}
+  .sec > .k{margin-bottom:8px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .sec > .k .sub{letter-spacing:0;text-transform:none;font-weight:500;color:var(--ink-3);font-size:11.5px}
+  table.mt{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+  table.mt th{font-weight:600;color:var(--ink-3);font-size:11.5px;text-align:right;padding:0 0 6px;white-space:nowrap}
+  table.mt th:first-child{text-align:left}
+  table.mt td{padding:6px 0;border-top:1px solid var(--line);text-align:right;white-space:nowrap}
+  table.mt td:first-child{text-align:left;color:var(--ink-2)}
+  table.mt td .a{color:var(--ink-3)}
+  table.mt td .rk{color:var(--ink-3);font-size:11.5px;margin-left:4px}
+  .pk{display:inline-flex;align-items:center;gap:6px}
+  .pk i{width:12px;height:3px;border-radius:2px;display:inline-block}
+  .tops{display:grid;gap:14px}
+  .tops.two{grid-template-columns:1fr 1fr;gap:16px}
+  .tl .h{font-size:12px;font-weight:650;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+  .row{position:relative;display:flex;align-items:center;gap:7px;padding:4px 6px;margin:0 -6px;border-radius:7px;cursor:pointer;font-size:12.5px}
+  .row:hover{background:var(--bg-2)}
+  .row .n{color:var(--ink-3);font-size:11px;width:14px;text-align:right;font-variant-numeric:tabular-nums}
+  .row .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .row .v{font-variant-numeric:tabular-nums;color:var(--ink-2);font-size:12px}
+  .row .b{position:absolute;left:26px;bottom:1px;height:2px;border-radius:2px;opacity:.55}
+  .chart svg{display:block;width:100%;overflow:visible}
+  .ckey{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:11.5px;color:var(--ink-3);margin-top:6px}
+  .ckey span{display:inline-flex;align-items:center;gap:6px}
+  .note{font-size:12px;color:var(--ink-3);line-height:1.55;margin-top:6px}
+  .card{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:#fff;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+  .card .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+  .card h3{font:600 18px/1.25 var(--serif);margin:3px 0 6px}
+  .x{border:0;background:none;cursor:pointer;color:var(--ink-3);padding:2px;border-radius:6px;display:grid;place-items:center}
+  .x:hover{background:var(--bg-2);color:var(--ink)}
+  .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:2px 10px 2px 8px;font-size:12px;color:var(--ink-2)}
+  .mini{font-size:11px;color:var(--ink-3);margin:12px 0 4px;letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+  .tags{display:flex;flex-wrap:wrap;gap:6px}
+  .tag2{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:2px 9px 2px 7px;font-size:12px;color:var(--ink-2);background:#fff;cursor:pointer}
+  .tag2:hover{background:var(--bg-2)}
+  .tag2 .s{font-size:10.5px;color:var(--ink-3)}
+  .btn{display:inline-flex;align-items:center;gap:6px;margin:12px 8px 0 0;border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 11px;cursor:pointer;font-size:12.5px;color:var(--ink);text-decoration:none}
+  .btn:hover{background:var(--bg-2)}
+  .empty{font-size:12.5px;color:var(--ink-3)}
+  .mx{border-collapse:collapse;font-size:11px;font-variant-numeric:tabular-nums}
+  .mx th{font-weight:600;color:var(--ink-3);padding:2px 3px;white-space:nowrap}
+  .mx th.r{text-align:right}
+  .mx td{width:40px;height:26px;text-align:center;border:1px solid #fff;border-radius:3px}
+  .mxwrap{display:grid;gap:14px}
+  .mxwrap .h{font-size:12px;font-weight:650;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+
+  @media (max-width:1100px){
+    main{grid-template-columns:1fr;grid-template-rows:70vh auto}
+    .panes{border-right:0;border-bottom:1px solid var(--line)}
+    .app{height:auto}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <p class="site">How Policy Orientation Shapes Innovation Ecosystems: An LLM-Based Scenario Analysis of Network Formation in the U.S. Space Sector</p>
+    <nav class="nav"><a href="baseline.html" class="on">Baseline</a><a href="dynamics.html">Dynamic Scenarios</a><a href="robustness.html">Robustness &amp; Sensitivity</a><a href="rationales.html">Rationales</a></nav>
+    <h1>Baseline Collaboration Network Analysis</h1>
+    <p class="hint">Explore collaboration networks under mission- and diffusion-oriented policies. Select a centrality measure to resize organizations, or click a node to compare its position across the two policies.</p>
+    <div class="toolbar">
+      <div class="grp"><span class="lab">Policy</span><div class="seg" id="segPol"></div></div>
+      <div class="grp"><span class="lab">Size by</span><div class="seg" id="segSize"></div></div>
+    </div>
+    <div class="search">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="text" placeholder="Search organizations" autocomplete="off" spellcheck="false">
+      <div class="results" id="results"></div>
+    </div>
+  </header>
+  <main>
+    <div class="panes" id="panes">
+      <div class="bar">
+        <div class="legend" id="legend"></div>
+        <div class="zoom">
+          <button id="zin" title="Zoom in"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+          <button id="zout" title="Zoom out"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+          <button id="zfit" title="Reset view"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+        </div>
+      </div>
+    </div>
+    <aside id="panel"></aside>
+  </main>
+</div>
+<div class="tip" id="tip"></div>
+
+<script>
+const DATA = {"nodes":{"1":["NASA","Government"],"2":["USSF","Government"],"3":["DARPA","Government"],"5":["Lockheed Martin","Large Enterprise"],"6":["Boeing","Large Enterprise"],"7":["Northrop Grumman","Large Enterprise"],"10":["L3Harris","Large Enterprise"],"11":["BWX Technologies","Large Enterprise"],"12":["Moog Inc.","Mid-sized Enterprise"],"13":["Hexcel Corp.","Mid-sized Enterprise"],"14":["Kratos Defense & Security","Mid-sized Enterprise"],"15":["Aerojet Rocketdyne","Mid-sized Enterprise"],"16":["Mercury Systems","Mid-sized Enterprise"],"20":["Relativity Space","Startup"],"21":["Sierra Space","Startup"],"23":["United Launch Alliance","Large Enterprise"],"36":["TriSept Corporation","SME"],"38":["A&R Tarpaulins","SME"],"40":["Advanced Inspection Technologies","SME"],"41":["Air Products and Chemicals","Large Enterprise"],"42":["ai Solutions Inc","Mid-sized Enterprise"],"44":["Amphenol Aerospace","Large Enterprise"],"45":["Analytical Graphics","Mid-sized Enterprise"],"46":["Astro Pak","SME"],"47":["Brandywine Communications","SME"],"48":["BRPH","Mid-sized Enterprise"],"49":["Concurrent Real-Time","Mid-sized Enterprise"],"50":["Craig Technologies","SME"],"52":["ENSCO","Mid-sized Enterprise"],"55":["Honeywell Aerospace","Large Enterprise"],"56":["Infinity Fuel Cell and Hydrogen","SME"],"57":["Jacobs","Large Enterprise"],"58":["Omitron, Inc.","SME"],"59":["Pacific Scientific Energetic Materials","Large Enterprise"],"60":["Precision Fluid Controls","SME"],"61":["RS&H","Mid-sized Enterprise"],"62":["Space Information Laboratories","SME"],"63":["Space Vector Corporation","SME"],"64":["United Electronic Industries","SME"],"69":["Aerospace Fabrication","Mid-sized Enterprise"],"70":["Airborne Systems","Large Enterprise"],"71":["American Aerospace Controls","SME"],"72":["Applied Aerospace Structures Corporation","Mid-sized Enterprise"],"73":["Atec, Inc.","Mid-sized Enterprise"],"74":["CDA InterCorp","SME"],"75":["Collins Aerospace","Large Enterprise"],"76":["Curtiss-Wright Corp","Large Enterprise"],"77":["Dynamic Fabrication","SME"],"78":["Dynetics","Mid-sized Enterprise"],"79":["EaglePicher Technologies","Mid-sized Enterprise"],"80":["Ecliptic","Startup"],"81":["Ensign-Bickford Aerospace & Defense","Mid-sized Enterprise"],"82":["Infinite Composites","Startup"],"83":["Ingenium Aerospace","SME"],"84":["Jansens Aircraft Systems Controls","SME"],"85":["Kaman Corporation","Large Enterprise"],"86":["Leggett & Platt Aerospace","Large Enterprise"],"87":["Marotta Controls","Mid-sized Enterprise"],"88":["Oceaneering","Large Enterprise"],"89":["Parabilis Space Technologies","Startup"],"90":["Paragon Space Development Corporation","SME"],"91":["Sierra Nevada Corporation","Large Enterprise"],"92":["Standex Engineering Technologies Group","Mid-sized Enterprise"],"93":["Teledyne Brown Engineering","Mid-sized Enterprise"],"94":["Triton Space Technologies","Startup"],"95":["Turbocam International","Mid-sized Enterprise"],"96":["Ursa Major","Startup"],"97":["Valcor Engineering Corporation","Mid-sized Enterprise"],"98":["VPT","Mid-sized Enterprise"],"99":["Zin Technologies","Mid-sized Enterprise"],"101":["Astronics Corporation","Mid-sized Enterprise"],"102":["Baughn Engineering","SME"],"103":["Dytran Instruments, Inc.","SME"],"104":["3D Systems","Large Enterprise"],"105":["Ansys","Large Enterprise"],"106":["SpaceWorks","Startup"],"107":["MIT","University"],"108":["Caltech","University"],"110":["Georgia Tech","University"],"111":["University of Michigan","University"],"112":["Purdue University","University"],"113":["University of Illinois Urbana-Champaign","University"],"114":["University of Texas Austin","University"],"115":["Texas A&M University","University"],"118":["University of Maryland College Park","University"],"119":["University of Colorado Boulder","University"],"121":["Johns Hopkins University","University"],"124":["Cornell University","University"],"139":["Air Force Institute of Technology","University"],"4":["FAA AST","Government"],"8":["SpaceX","Startup"],"9":["Blue Origin","Startup"],"18":["Rocket Lab","Startup"],"19":["Firefly Aerospace","Startup"],"22":["Axiom Space","Startup"],"26":["bluShift Aerospace","Startup"],"28":["CubeCab","Startup"],"31":["Fenix Space","Startup"],"32":["Launcher","Startup"],"33":["Nanoracks","Mid-sized Enterprise"],"34":["Spaceflight Industries","Mid-sized Enterprise"],"39":["Adaptive Launch Solutions","SME"],"43":["AMERGINT Technologies","SME"],"51":["Dunmore Aerospace","Mid-sized Enterprise"],"53":["Epsilon3","Startup"],"54":["Haigh-Farr, Inc","SME"],"65":["ABL Space Systems","Startup"],"100":["Xtenti","Startup"],"127":["University of Florida","University"],"131":["Embry–Riddle Aeronautical University","University"],"135":["University of California Davis","University"],"144":["University of Central Florida","University"]},"nets":{"mission":{"nodes":[[1,343.1,442.9,59,1832.599,0.7333,1.0],[2,656.0,750.1,12,114.31,0.4513,0.3415],[3,734.3,707.5,9,91.162,0.4018,0.2436],[5,676.2,646.0,8,17.891,0.5029,0.3348],[6,633.4,531.0,22,151.364,0.557,0.6312],[7,751.4,418.0,40,1092.772,0.6111,0.7794],[10,554.7,731.0,10,38.162,0.5087,0.3384],[11,831.8,799.5,1,0.0,0.2876,0.0189],[12,509.9,671.2,8,18.997,0.5,0.3217],[13,598.8,610.8,8,29.312,0.5116,0.3567],[14,679.4,249.4,4,11.94,0.449,0.1352],[15,612.0,669.8,10,33.839,0.5176,0.3846],[16,630.2,437.1,5,13.574,0.4211,0.1335],[20,301.8,57.3,2,0.0,0.3682,0.0619],[21,292.8,225.6,36,567.45,0.5432,0.6205],[23,513.7,563.6,24,213.637,0.55,0.6068],[36,31.8,722.1,2,1.006,0.3296,0.0188],[38,187.1,490.2,1,0.0,0.4251,0.0774],[40,82.3,230.7,2,0.0,0.3713,0.0614],[41,426.5,658.0,6,8.526,0.4916,0.2508],[42,130.8,642.6,6,73.547,0.4513,0.1195],[44,470.5,343.0,8,12.22,0.4681,0.2614],[45,84.3,579.9,5,40.731,0.4335,0.123],[46,139.5,356.0,6,26.417,0.4607,0.1721],[47,258.5,0.0,2,0.5,0.3235,0.0274],[48,211.3,680.1,5,32.015,0.4536,0.1299],[49,166.7,298.6,2,0.622,0.449,0.1255],[50,203.0,617.7,8,107.768,0.4835,0.2223],[52,162.0,558.5,4,3.067,0.4422,0.1087],[55,332.1,700.2,5,3.108,0.449,0.1513],[56,205.9,72.5,1,0.0,0.3534,0.048],[57,383.2,749.8,10,80.234,0.4731,0.2536],[58,0.0,682.3,3,1.833,0.3296,0.0202],[59,509.0,196.1,11,28.362,0.5116,0.3638],[60,429.9,249.6,3,1.522,0.4513,0.1474],[61,245.3,816.0,2,0.0,0.3259,0.0297],[62,439.1,85.8,8,47.0,0.449,0.2144],[63,496.5,129.7,7,17.905,0.5,0.2717],[64,149.3,205.5,2,0.622,0.449,0.1255],[69,167.8,452.1,1,0.0,0.4251,0.0774],[70,433.4,181.4,4,0.622,0.4536,0.1909],[71,168.5,131.6,4,43.213,0.456,0.1391],[72,584.3,297.4,7,8.358,0.4889,0.2934],[73,525.9,434.7,4,7.457,0.4757,0.1664],[74,115.7,274.7,2,0.622,0.449,0.1255],[75,369.8,599.3,4,4.847,0.4656,0.186],[76,606.7,357.7,11,62.396,0.5146,0.3836],[77,161.6,249.6,4,1.206,0.456,0.1495],[78,523.6,262.6,5,8.156,0.4656,0.2128],[79,507.8,63.5,4,0.0,0.44,0.1449],[80,216.8,311.8,2,0.622,0.449,0.1255],[81,569.0,164.2,11,31.179,0.5176,0.3862],[82,139.7,470.7,1,0.0,0.4251,0.0774],[83,521.5,326.5,2,0.0,0.4356,0.1071],[84,544.2,376.4,7,8.977,0.4944,0.2829],[85,371.8,291.9,4,1.298,0.4632,0.2006],[86,501.8,396.3,2,0.0,0.4356,0.1071],[87,602.1,235.8,14,39.426,0.5269,0.4815],[88,474.0,277.3,4,7.998,0.4889,0.2005],[89,364.1,111.2,2,0.0,0.4293,0.094],[90,431.1,312.0,4,0.983,0.4656,0.1898],[91,647.8,178.8,2,3.459,0.44,0.1084],[92,409.1,211.1,3,1.5,0.4513,0.1482],[93,572.2,462.9,5,0.551,0.4862,0.2555],[94,180.5,523.1,1,0.0,0.4251,0.0774],[95,581.8,414.8,5,18.282,0.4972,0.2427],[96,397.9,164.3,4,22.008,0.4656,0.1791],[97,520.0,479.5,3,0.385,0.4809,0.1847],[98,673.3,310.3,4,0.0,0.4783,0.2047],[99,136.4,424.2,3,4.997,0.4513,0.1339],[101,433.8,576.9,3,0.333,0.4314,0.109],[102,702.9,576.3,4,0.385,0.4835,0.2336],[103,555.0,505.9,5,8.252,0.4862,0.242],[104,558.9,644.7,5,5.024,0.4889,0.2532],[105,269.1,718.5,3,1.103,0.4378,0.1037],[106,262.1,660.9,2,0.0,0.4272,0.0854],[107,905.0,435.6,1,0.0,0.381,0.0603],[108,924.5,355.8,1,0.0,0.381,0.0603],[110,920.9,409.4,1,0.0,0.381,0.0603],[111,890.8,384.9,1,0.0,0.381,0.0603],[112,783.9,542.4,3,0.2,0.4,0.128],[113,895.5,314.9,1,0.0,0.381,0.0603],[114,987.7,370.3,2,0.0,0.3826,0.0654],[115,1000.0,397.2,2,0.0,0.3826,0.0654],[118,374.7,644.7,2,10.144,0.3946,0.0696],[119,937.5,449.6,1,0.0,0.381,0.0603],[121,909.2,478.0,1,0.0,0.381,0.0603],[124,879.4,345.0,1,0.0,0.381,0.0603],[139,719.8,872.9,1,0.0,0.3121,0.0264]],"edges":[[1,5],[1,6],[1,7],[1,10],[1,12],[1,13],[1,15],[1,38],[1,41],[1,42],[1,44],[1,46],[1,48],[1,49],[1,50],[1,52],[1,55],[1,57],[1,59],[1,60],[1,62],[1,63],[1,64],[1,69],[1,70],[1,71],[1,72],[1,73],[1,74],[1,75],[1,76],[1,77],[1,78],[1,79],[1,80],[1,81],[1,82],[1,83],[1,84],[1,85],[1,86],[1,87],[1,88],[1,89],[1,90],[1,92],[1,93],[1,94],[1,95],[1,96],[1,97],[1,98],[1,99],[1,101],[1,102],[1,103],[1,104],[1,105],[1,106],[2,3],[2,5],[2,6],[2,7],[2,10],[2,12],[2,13],[2,15],[2,16],[2,23],[2,57],[2,139],[3,5],[3,6],[3,10],[3,11],[3,13],[3,15],[3,16],[3,23],[5,6],[5,7],[5,10],[5,15],[5,23],[6,7],[6,10],[6,12],[6,13],[6,15],[6,21],[6,23],[6,72],[6,75],[6,76],[6,87],[6,90],[6,93],[6,96],[6,102],[6,103],[6,104],[6,112],[7,10],[7,12],[7,13],[7,14],[7,15],[7,23],[7,41],[7,59],[7,63],[7,72],[7,73],[7,76],[7,81],[7,84],[7,87],[7,88],[7,91],[7,93],[7,95],[7,97],[7,98],[7,102],[7,103],[7,104],[7,107],[7,108],[7,110],[7,111],[7,112],[7,113],[7,114],[7,115],[7,118],[7,119],[7,121],[7,124],[10,15],[10,41],[10,55],[10,57],[12,15],[12,23],[12,44],[12,55],[13,15],[13,21],[13,23],[14,16],[14,21],[14,78],[15,21],[16,21],[16,76],[20,21],[20,96],[21,23],[21,40],[21,44],[21,45],[21,46],[21,49],[21,50],[21,56],[21,59],[21,60],[21,63],[21,64],[21,70],[21,71],[21,74],[21,75],[21,76],[21,77],[21,78],[21,80],[21,81],[21,85],[21,87],[21,88],[21,90],[21,91],[21,92],[21,95],[21,96],[21,99],[23,41],[23,45],[23,50],[23,57],[23,76],[23,78],[23,81],[23,84],[23,85],[23,87],[23,93],[23,95],[23,97],[23,102],[23,103],[23,104],[36,50],[36,58],[40,46],[41,44],[41,57],[42,45],[42,50],[42,52],[42,58],[42,118],[44,46],[44,59],[44,73],[44,87],[45,50],[45,58],[46,48],[46,77],[47,62],[47,71],[48,50],[48,57],[48,61],[50,57],[52,55],[52,99],[55,75],[57,61],[57,104],[57,105],[59,62],[59,63],[59,70],[59,72],[59,81],[59,85],[59,87],[60,84],[62,63],[62,79],[62,81],[62,87],[62,89],[63,79],[63,81],[70,87],[71,77],[72,81],[72,87],[72,92],[73,101],[76,83],[76,84],[76,86],[76,87],[76,98],[78,81],[79,81],[81,87],[84,87],[84,93],[87,98],[88,90],[95,112],[101,103],[105,106],[114,115]]},"diffusion":{"nodes":[[1,507.3,342.7,7,24.912,0.3664,0.4223],[2,636.7,268.0,17,488.589,0.4267,0.7491],[3,623.3,346.0,9,50.726,0.3623,0.4661],[4,367.0,276.7,13,298.874,0.4424,0.6974],[5,426.7,222.5,9,183.364,0.4103,0.4923],[6,327.1,116.6,2,6.616,0.3,0.0596],[7,557.5,147.9,7,41.714,0.384,0.3836],[8,513.8,264.1,5,6.383,0.3429,0.3157],[9,490.6,294.3,4,4.476,0.3368,0.2455],[10,492.5,199.5,12,256.994,0.4424,0.6253],[12,623.5,185.6,12,521.978,0.4051,0.3277],[13,603.4,109.6,6,121.002,0.3582,0.2663],[14,324.0,547.8,3,5.132,0.3516,0.1895],[15,705.6,192.9,13,356.327,0.3983,0.4309],[16,553.5,460.2,4,207.674,0.3636,0.1399],[18,485.8,483.9,17,472.642,0.4211,0.707],[19,502.5,397.5,11,164.227,0.412,0.6316],[20,568.5,373.1,9,31.819,0.365,0.5253],[21,430.4,338.5,21,661.4,0.4593,1.0],[22,278.0,308.9,6,115.833,0.3692,0.2935],[23,562.5,305.1,13,428.504,0.4305,0.5902],[26,930.0,620.0,1,0.0,null,0.0],[28,860.0,674.1,1,0.0,null,0.0],[31,860.0,614.1,1,0.0,null,0.0],[32,695.3,535.1,6,203.803,0.3516,0.1582],[33,319.9,333.4,4,25.75,0.3299,0.17],[34,388.3,404.0,6,53.261,0.3529,0.2545],[36,453.5,551.9,5,19.04,0.3265,0.145],[38,34.5,448.0,1,0.0,0.2533,0.0144],[39,409.4,456.1,5,55.515,0.365,0.2288],[40,37.4,473.6,1,0.0,0.2533,0.0144],[41,202.8,266.6,3,0.0,0.3,0.1227],[42,310.6,432.9,24,1204.941,0.4848,0.9731],[43,259.1,520.7,2,0.0,0.3288,0.1223],[44,678.8,315.8,3,21.836,0.3368,0.1071],[45,396.4,496.5,7,29.618,0.3887,0.4214],[46,102.0,437.3,4,189.0,0.338,0.1371],[47,626.9,570.1,1,0.0,0.29,0.0307],[48,188.5,378.4,8,231.266,0.3542,0.3017],[49,833.7,570.6,2,0.0,0.2616,0.0178],[50,280.3,566.7,8,178.532,0.3721,0.3276],[51,58.6,366.3,2,95.0,0.2637,0.0321],[52,349.6,510.0,7,54.336,0.3871,0.4109],[53,530.9,536.8,7,111.302,0.381,0.4007],[54,659.7,558.0,4,58.44,0.3028,0.0659],[55,405.8,128.3,5,89.057,0.3556,0.1861],[57,348.6,206.4,11,214.512,0.4068,0.581],[58,371.2,593.9,5,49.245,0.3429,0.2033],[59,838.4,316.6,5,60.546,0.32,0.0822],[60,790.1,227.7,5,180.993,0.3453,0.1256],[61,254.6,257.0,5,25.943,0.3609,0.2842],[62,604.4,490.4,10,385.055,0.4068,0.2919],[63,880.0,351.4,2,0.0,0.2588,0.0159],[64,781.6,584.0,3,16.308,0.2759,0.0241],[65,702.4,328.7,3,0.911,0.3087,0.1685],[69,0.0,354.8,1,0.0,0.2092,0.0034],[70,570.0,84.9,2,4.997,0.2972,0.0622],[72,675.1,121.2,3,10.414,0.3211,0.1],[73,762.2,132.8,4,42.918,0.3211,0.0948],[74,957.7,76.8,2,95.0,0.2406,0.007],[75,441.9,110.2,5,40.444,0.331,0.1607],[77,899.6,102.2,1,0.0,0.2394,0.0069],[78,568.4,553.8,1,0.0,0.2674,0.0147],[79,726.1,394.1,4,67.498,0.3569,0.1517],[81,816.7,369.2,5,65.603,0.3232,0.0689],[82,728.8,594.8,1,0.0,0.2609,0.0166],[83,1000.0,50.0,1,0.0,0.1943,0.0007],[84,851.7,144.5,6,299.966,0.3137,0.0656],[87,838.6,247.4,7,135.844,0.3357,0.1138],[88,271.9,111.9,5,108.286,0.3019,0.0746],[89,816.0,515.1,2,0.0,0.2735,0.0235],[90,286.3,173.3,5,127.473,0.3322,0.1626],[91,229.9,59.5,1,0.0,0.2324,0.0078],[92,232.6,624.1,1,0.0,0.272,0.0344],[93,968.1,156.3,1,0.0,0.2197,0.0045],[94,799.2,419.8,5,79.487,0.3168,0.0648],[95,713.6,282.9,3,6.47,0.3265,0.1481],[96,678.7,359.0,9,31.873,0.3243,0.3868],[97,902.2,169.6,5,101.11,0.2807,0.0425],[98,590.0,543.4,1,0.0,0.2674,0.0147],[99,225.6,532.5,2,0.0,0.331,0.1368],[100,350.5,358.4,3,1.75,0.2909,0.0687],[101,666.0,159.7,2,4.947,0.3333,0.1132],[103,733.6,451.0,4,141.094,0.3429,0.1452],[104,560.0,225.9,13,185.376,0.4138,0.6671],[105,474.2,265.4,6,111.568,0.3429,0.2839],[106,658.9,462.6,6,78.198,0.3404,0.1956],[107,388.3,537.1,3,0.0,0.3516,0.221],[108,464.8,234.1,1,0.0,0.256,0.0299],[110,599.0,440.3,5,18.49,0.3288,0.2207],[111,481.3,563.7,1,0.0,0.2972,0.0744],[112,626.5,405.7,9,80.509,0.375,0.4516],[113,500.5,582.0,1,0.0,0.2972,0.0744],[115,447.1,416.2,1,0.0,0.2927,0.0664],[118,218.6,461.6,1,0.0,0.3276,0.1023],[119,554.1,428.2,4,12.987,0.3596,0.2823],[127,221.6,135.9,1,0.0,0.25,0.0171],[131,990.0,668.1,1,0.0,null,0.0],[135,642.9,0.0,1,0.0,0.2645,0.028],[139,701.9,257.3,1,0.0,0.3,0.0788],[144,478.3,605.6,2,8.304,0.2981,0.055]],"edges":[[1,8],[1,9],[1,18],[1,19],[1,20],[1,21],[1,23],[2,5],[2,7],[2,8],[2,9],[2,10],[2,15],[2,18],[2,19],[2,20],[2,21],[2,23],[2,65],[2,96],[2,101],[2,103],[2,105],[2,139],[3,8],[3,9],[3,18],[3,19],[3,20],[3,21],[3,65],[3,96],[3,112],[4,5],[4,8],[4,9],[4,12],[4,18],[4,19],[4,21],[4,23],[4,34],[4,39],[4,42],[4,57],[4,61],[5,6],[5,10],[5,12],[5,42],[5,45],[5,75],[5,104],[6,88],[7,10],[7,12],[7,13],[7,15],[7,57],[7,104],[8,104],[10,15],[10,21],[10,23],[10,42],[10,44],[10,55],[10,57],[10,62],[10,75],[12,15],[12,16],[12,44],[12,55],[12,62],[12,73],[12,84],[12,87],[12,101],[13,15],[13,21],[13,23],[13,72],[13,135],[14,18],[14,42],[14,43],[15,59],[15,60],[15,70],[15,73],[15,87],[15,95],[15,104],[15,112],[16,42],[16,78],[16,98],[18,32],[18,34],[18,42],[18,45],[18,53],[18,104],[18,107],[18,110],[18,111],[18,112],[18,113],[18,119],[19,20],[19,21],[19,34],[19,42],[19,53],[19,112],[19,115],[20,21],[20,96],[20,104],[20,110],[20,112],[21,22],[21,33],[21,42],[21,45],[21,50],[21,52],[21,53],[21,57],[21,61],[21,79],[21,90],[21,104],[21,119],[22,33],[22,42],[22,52],[22,88],[22,90],[23,42],[23,52],[23,60],[23,72],[23,95],[23,103],[23,104],[23,119],[26,131],[28,31],[32,53],[32,62],[32,82],[32,89],[32,94],[33,34],[33,100],[34,36],[34,100],[36,39],[36,53],[36,58],[36,62],[38,46],[39,42],[39,62],[39,100],[40,46],[41,48],[41,57],[41,61],[42,43],[42,45],[42,46],[42,48],[42,50],[42,52],[42,53],[42,57],[42,58],[42,62],[42,99],[42,107],[42,118],[44,54],[45,52],[45,58],[45,107],[46,48],[47,62],[48,50],[48,51],[48,52],[48,57],[48,61],[49,64],[49,103],[50,52],[50,58],[50,92],[50,99],[50,144],[51,69],[53,106],[54,58],[54,62],[54,64],[55,57],[55,75],[55,88],[57,61],[57,104],[57,105],[59,63],[59,79],[59,81],[59,87],[60,84],[60,94],[60,97],[62,79],[62,81],[63,81],[64,103],[65,96],[70,75],[72,73],[73,97],[74,83],[74,84],[75,90],[77,84],[79,81],[81,87],[84,87],[84,97],[87,94],[87,97],[88,90],[88,91],[89,94],[90,127],[93,97],[94,106],[95,96],[96,104],[96,110],[96,112],[96,119],[104,105],[104,106],[104,112],[105,108],[105,110],[105,112],[106,110],[106,112],[106,144]]}},"metrics":{"mission":{"nodes":146,"nodesA":89,"edges":270,"density":0.026,"densityA":0.069,"avgdeg":3.699,"avgdegA":6.067,"apl":2.281,"clust":0.258,"clustA":0.423,"mod":0.344,"comps":1,"lcc":89},"diffusion":{"nodes":146,"nodesA":101,"edges":258,"density":0.024,"densityA":0.051,"avgdeg":3.534,"avgdegA":5.109,"apl":3.118,"clust":0.143,"clustA":0.207,"mod":0.453,"comps":3,"lcc":97}}};
+
+const TYPES = [
+  {key:'University',           fill:'#f8c0f0', ink:'#b24fa4', short:'Univ.'},
+  {key:'Startup',              fill:'#d0d872', ink:'#868e12', short:'Startup'},
+  {key:'Mid-sized Enterprise', fill:'#81e4b6', ink:'#23996a', short:'Mid-size'},
+  {key:'SME',                  fill:'#95dbf5', ink:'#2585b8', short:'SME'},
+  {key:'Large Enterprise',     fill:'#ffbe76', ink:'#c26f14', short:'Large'},
+  {key:'Government',           fill:'#ffaeb1', ink:'#c3424c', short:'Gov.'},
+];
+const T = Object.fromEntries(TYPES.map(t=>[t.key,t]));
+const POLS = ['mission','diffusion'];
+const POLNAME = {mission:'Mission-oriented', diffusion:'Diffusion-oriented'};
+const POLSHORT = {mission:'Mission', diffusion:'Diffusion'};
+const POLCOLOR = {mission:'#2b4c7e', diffusion:'#b0476a'};
+const MEASURES = [
+  {key:'deg', t:'Degree',      long:'Degree (mutual partners)', fmt:v=>String(v)},
+  {key:'btw', t:'Betweenness', long:'Betweenness centrality',  fmt:v=>v.toFixed(1)},
+  {key:'clo', t:'Closeness',   long:'Closeness centrality',    fmt:v=>v.toFixed(3)},
+  {key:'eig', t:'Eigenvector', long:'Eigenvector centrality',  fmt:v=>v.toFixed(3)},
+];
+const M = Object.fromEntries(MEASURES.map(m=>[m.key,m]));
+const SVGNS = 'http://www.w3.org/2000/svg';
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const darken = (hex, f) => { const n=parseInt(hex.slice(1),16); return `rgb(${(n>>16)*f|0},${(n>>8&255)*f|0},${(n&255)*f|0})`; };
+const mk = (tag, attrs={}, parent) => { const e=document.createElementNS(SVGNS,tag); for (const k in attrs) e.setAttribute(k,attrs[k]); parent && parent.appendChild(e); return e; };
+const ease = t => t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const LABEL = id => DATA.nodes[id][0], TYPE = id => DATA.nodes[id][1];
+const dotOf = id => `<span class="dot" style="background:${T[TYPE(id)].fill}"></span>`;
+
+/* ---------- model ---------- */
+const NET = {};
+for (const pol of POLS) {
+  const d = DATA.nets[pol], nodes = new Map(), adj = new Map();
+  for (const [id,x,y,deg,btw,clo,eig] of d.nodes) { nodes.set(id, {id,x,y,deg,btw,clo,eig}); adj.set(id, []); }
+  for (const [a,b] of d.edges) { adj.get(a).push(b); adj.get(b).push(a); }
+  // ranks (1 = highest); closeness ranked within the main component only
+  const ranks = {};
+  for (const m of MEASURES) {
+    const arr = [...nodes.values()].filter(n => n[m.key]!=null).sort((a,b)=>b[m.key]-a[m.key]);
+    ranks[m.key] = new Map(); let prev = null, r = 0;
+    arr.forEach((n,i) => { if (n[m.key]!==prev) { r = i+1; prev = n[m.key]; } ranks[m.key].set(n.id, r); });
+    ranks[m.key].n = arr.length;
+  }
+  NET[pol] = {nodes, adj, edges:d.edges, ranks};
+}
+// size scales shared by both policies (common scale)
+const SCALE = {};
+for (const m of MEASURES) {
+  const vals = POLS.flatMap(p => [...NET[p].nodes.values()].map(n=>n[m.key]).filter(v=>v!=null));
+  SCALE[m.key] = {min: m.key==='clo' ? Math.min(...vals) : 0, max: Math.max(...vals)};
+}
+function radius(n, key) {
+  const v = n[key], s = SCALE[key];
+  const f = v==null ? 0 : (v - s.min) / (s.max - s.min || 1);
+  return 0.75 * (10 + 90*f);
+}
+
+/* ---------- state ---------- */
+const S = {pol:'mission', size:'deg', sel:null, hover:null, off:new Set(), anim:false};
+let PANES = [];
+const visPols = () => S.pol==='compare' ? POLS : [S.pol];
+const isOff = id => S.off.has(TYPE(id));
+
+function readHash() {
+  const h = new URLSearchParams(location.hash.slice(1));
+  if (['mission','diffusion','compare'].includes(h.get('policy'))) S.pol = h.get('policy');
+  if (M[h.get('size')]) S.size = h.get('size');
+  const node = +h.get('node'); if (node && DATA.nodes[node]) S.sel = node;
+}
+function writeHash() { history.replaceState(null,'',`#policy=${S.pol}&size=${S.size}` + (S.sel!=null?`&node=${S.sel}`:'')); }
+
+/* ---------- segmented controls ---------- */
+function seg(el, items, get, set) {
+  el.innerHTML = '<span class="thumb"></span>' + items.map(i=>`<button data-v="${i.v}">${i.t}</button>`).join('');
+  el.querySelectorAll('button').forEach(b => b.onclick = () => set(b.dataset.v));
+  const sync = () => { let on=null; el.querySelectorAll('button').forEach(b => { const o=b.dataset.v===get(); b.classList.toggle('on',o); if (o) on=b; });
+    const th = el.querySelector('.thumb'); if (on) { th.style.left=on.offsetLeft+'px'; th.style.width=on.offsetWidth+'px'; } };
+  sync(); return sync;
+}
+const syncPol = seg($('#segPol'), [{v:'mission',t:'Mission'},{v:'diffusion',t:'Diffusion'},{v:'compare',t:'Compare'}], ()=>S.pol, v => setPol(v));
+const syncSize = seg($('#segSize'), MEASURES.map(m=>({v:m.key,t:m.t})), ()=>S.size, v => setSize(v));
+
+/* ---------- panes ---------- */
+const panesEl = $('#panes');
+function buildPanes(fade) {
+  PANES.forEach(p => p.el.remove());
+  PANES = visPols().map(pol => {
+    const el = document.createElement('div'); el.className = 'pane';
+    panesEl.insertBefore(el, panesEl.querySelector('.bar'));
+    el.innerHTML = `<div class="kicker"><span class="sw" style="background:${POLCOLOR[pol]}"></span>${POLNAME[pol]} policy</div>`;
+    const svg = mk('svg', {}, el);
+    const P = {pol, el, svg, gE:mk('g',{},svg), gF:mk('g',{},svg), gN:mk('g',{},svg), gL:mk('g',{},svg), nodes:new Map(), edges:[], view:null, fit:null, rk:S.size, rt:1};
+    const net = NET[pol];
+    for (const [a,b] of net.edges) P.edges.push({a, b, el: mk('path',{fill:'none'}, P.gE)});
+    const order = [...net.nodes.values()].sort((a,b)=>b.deg-a.deg);
+    for (const n of order) {
+      const g = mk('g',{class:'node'}, P.gN), c = mk('circle',{}, g);
+      c.style.fill = T[TYPE(n.id)].fill; c.style.stroke = darken(T[TYPE(n.id)].fill,.5);
+      const lb = mk('text',{class:'lbl'}, P.gL); lb.textContent = LABEL(n.id);
+      P.nodes.set(n.id, {g, c, lb, lw:0, n});
+      c.addEventListener('pointerenter', e => { S.hover = n.id; refresh(); nodeTip(n.id, pol, e); });
+      c.addEventListener('pointermove', moveTip);
+      c.addEventListener('pointerleave', () => { S.hover = null; refresh(); hideTip(); });
+      c.addEventListener('click', e => { e.stopPropagation(); if (justDragged) return; select(n.id); });
+    }
+    attachZoom(P);
+    return P;
+  });
+  if (fade) { panesEl.classList.remove('fade'); void panesEl.offsetWidth; panesEl.classList.add('fade'); }
+  requestAnimationFrame(() => {
+    for (const P of PANES) { for (const v of P.nodes.values()) v.lw = v.lb.getComputedTextLength() || 80; fitPane(P); P.view = {...P.fit}; }
+    renderAll();
+    if (S.sel!=null) zoomTo(S.sel, false);
+  });
+}
+function fitPane(P) {
+  const r = P.svg.getBoundingClientRect(), W = r.width, H = r.height;
+  let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
+  for (const n of NET[P.pol].nodes.values()) { const rr = radius(n,'deg'); x0=Math.min(x0,n.x-rr); y0=Math.min(y0,n.y-rr); x1=Math.max(x1,n.x+rr); y1=Math.max(y1,n.y+rr); }
+  const padT = 48, padB = 70, padX = 24;
+  const k = Math.min((W-2*padX)/(x1-x0), (H-padT-padB)/(y1-y0));
+  P.fit = {k, x:(W-(x1-x0)*k)/2 - x0*k, y: padT + ((H-padT-padB)-(y1-y0)*k)/2 - y0*k};
+}
+const scr = (P, n) => ({x:n.x*P.view.k+P.view.x, y:n.y*P.view.k+P.view.y});
+const rScreen = (P, rw) => rw * P.fit.k * Math.pow(P.view.k/P.fit.k, .55);
+
+/* ---------- render ---------- */
+function focusFor(P) {
+  const id = S.hover ?? S.sel; if (id==null) return null;
+  const net = NET[P.pol]; if (!net.nodes.has(id)) return {center:id, nodes:new Set()};
+  return {center:id, nodes:new Set([id, ...net.adj.get(id)])};
+}
+function curve(A, B) {
+  const dx=B.x-A.x, dy=B.y-A.y, cx=(A.x+B.x)/2-dy*.08, cy=(A.y+B.y)/2+dx*.08;
+  return `M${A.x.toFixed(1)},${A.y.toFixed(1)}Q${cx.toFixed(1)},${cy.toFixed(1)} ${B.x.toFixed(1)},${B.y.toFixed(1)}`;
+}
+function drawPane(P) {
+  const F = focusFor(P), pos = new Map();
+  // size transition blend
+  const rw = n => { const to = radius(n, S.size); if (P.rt>=1) return to; const fr = radius(n, P.rk); return fr + (to-fr)*ease(P.rt); };
+  for (const [id, v] of P.nodes) {
+    const s = scr(P, v.n), r = Math.max(1.6, rScreen(P, rw(v.n))); pos.set(id, {...s, r});
+    v.c.setAttribute('cx', s.x.toFixed(1)); v.c.setAttribute('cy', s.y.toFixed(1)); v.c.setAttribute('r', r.toFixed(2));
+    v.c.style.strokeWidth = (0.1*r+0.6).toFixed(2);
+    let o = 1; if (isOff(id)) o = .12; else if (F && !F.nodes.has(id)) o = .16;
+    v.g.style.opacity = o; v.c.style.pointerEvents = isOff(id) ? 'none' : 'auto';
+  }
+  P.gF.textContent = '';
+  for (const e of P.edges) {
+    const A = pos.get(e.a), B = pos.get(e.b), d = curve(A,B);
+    e.el.setAttribute('d', d);
+    const inc = F && (F.center===e.a || F.center===e.b);
+    let op = F ? .07 : .5; if (isOff(e.a)||isOff(e.b)) op = .05;
+    e.el.style.stroke = '#c3c8d0'; e.el.style.strokeWidth = .8; e.el.style.opacity = inc ? 0 : op;
+    if (inc && !isOff(e.a) && !isOff(e.b)) {
+      const o = F.center===e.a ? e.b : e.a;
+      const p = mk('path',{d, fill:'none'}, P.gF); p.style.cssText = `stroke:${T[TYPE(o)].ink};stroke-width:1.4;opacity:.75`;
+    }
+  }
+  // labels
+  for (const v of P.nodes.values()) v.lb.style.display = 'none';
+  const placed = [];
+  const ids = [...P.nodes.keys()].filter(id => !isOff(id));
+  const prio = id => (F && F.center===id ? 1e7 : 0) + (F && F.nodes.has(id) ? 1e6 : 0) + pos.get(id).r;
+  ids.sort((a,b)=>prio(b)-prio(a));
+  for (const id of ids) {
+    const s = pos.get(id), v = P.nodes.get(id), foc = F && F.nodes.has(id);
+    if (F && F.nodes.size && !foc) continue;
+    if (!foc && s.r < 7) continue;
+    const w = v.lw+6, cands = foc ? [[0,0],[0,s.r+10],[0,-s.r-10],[s.r+w/2+3,0],[-s.r-w/2-3,0]] : [[0,0]];
+    for (const [dx,dy] of cands) {
+      const cx=s.x+dx, cy=s.y+dy, b={x0:cx-w/2,x1:cx+w/2,y0:cy-7.5,y1:cy+7.5};
+      if (!placed.some(q => !(b.x1<q.x0||b.x0>q.x1||b.y1<q.y0||b.y0>q.y1))) { placed.push(b); v.lb.style.display=''; v.lb.setAttribute('x',cx.toFixed(1)); v.lb.setAttribute('y',cy.toFixed(1)); break; }
+    }
+  }
+}
+function renderAll() { for (const P of PANES) if (P.fit) drawPane(P); }
+let rq = 0;
+function refresh() { if (rq) return; rq = requestAnimationFrame(() => { rq = 0; renderAll(); }); }
+
+/* ---------- actions ---------- */
+function setPol(v) { if (v===S.pol) return; S.pol = v; S.hover = null; syncPol(); buildPanes(true); renderPanel(); writeHash(); }
+function setSize(v) {
+  if (v===S.size) return;
+  const from = S.size; S.size = v; syncSize(); writeHash(); renderPanel();
+  const t0 = performance.now();
+  for (const P of PANES) { P.rk = from; P.rt = 0; }
+  const step = now => { const t = Math.min(1,(now-t0)/600); for (const P of PANES) P.rt = t; renderAll(); if (t<1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+function select(id, zoom) { S.sel = id; refresh(); renderPanel(); writeHash(); if (zoom) zoomTo(id, true); }
+function zoomTo(id, animate) {
+  for (const P of PANES) {
+    const n = NET[P.pol].nodes.get(id); if (!n || !P.fit) continue;
+    const r = P.svg.getBoundingClientRect(), k = Math.max(P.view.k, P.fit.k*1.8);
+    const v = {k, x:r.width/2 - n.x*k, y:r.height/2 - n.y*k};
+    animate ? animateView(P, v) : (P.view = v);
+  }
+  if (!animate) renderAll();
+}
+
+/* ---------- zoom & pan ---------- */
+let justDragged = false;
+function animateView(P, v) {
+  const v0 = {...P.view}, t0 = performance.now();
+  const step = now => { const t = ease(Math.min(1,(now-t0)/480)); P.view = {k:v0.k+(v.k-v0.k)*t, x:v0.x+(v.x-v0.x)*t, y:v0.y+(v.y-v0.y)*t}; drawPane(P); if (t<1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+function zoomAt(P, f, cx, cy, animate) {
+  const v = P.view, k = Math.max(P.fit.k*.6, Math.min(P.fit.k*14, v.k*f)), r = k/v.k, nv = {k, x:cx-(cx-v.x)*r, y:cy-(cy-v.y)*r};
+  if (animate) animateView(P, nv); else { P.view = nv; refresh(); }
+}
+function attachZoom(P) {
+  const svg = P.svg; let drag = null;
+  svg.addEventListener('wheel', e => { e.preventDefault(); const r = svg.getBoundingClientRect(); zoomAt(P, Math.exp(-e.deltaY*(e.ctrlKey?0.01:0.0016)), e.clientX-r.left, e.clientY-r.top); }, {passive:false});
+  svg.addEventListener('pointerdown', e => { if (e.button!==0) return; drag = {x:e.clientX, y:e.clientY, v:{...P.view}, moved:false}; });
+  window.addEventListener('pointermove', e => {
+    if (!drag) return; if (!(e.buttons&1)) { drag = null; svg.classList.remove('drag'); return; }
+    const dx = e.clientX-drag.x, dy = e.clientY-drag.y;
+    if (!drag.moved && Math.hypot(dx,dy)>3) { drag.moved = true; svg.classList.add('drag'); hideTip(); }
+    if (drag.moved) { P.view = {k:drag.v.k, x:drag.v.x+dx, y:drag.v.y+dy}; refresh(); }
+  });
+  window.addEventListener('pointerup', () => { if (!drag) return; justDragged = drag.moved; svg.classList.remove('drag'); drag = null; setTimeout(()=>{justDragged=false},0); });
+  svg.addEventListener('click', e => { if (justDragged) return; if (e.target===svg) { S.sel = null; refresh(); renderPanel(); writeHash(); } });
+  svg.addEventListener('pointerleave', () => { if (S.hover!=null) { S.hover = null; refresh(); } hideTip(); });
+}
+const mid = P => { const r = P.svg.getBoundingClientRect(); return [r.width/2, r.height/2]; };
+$('#zin').onclick = () => PANES.forEach(P => zoomAt(P, 1.6, ...mid(P), true));
+$('#zout').onclick = () => PANES.forEach(P => zoomAt(P, 1/1.6, ...mid(P), true));
+$('#zfit').onclick = () => PANES.forEach(P => animateView(P, {...P.fit}));
+window.addEventListener('resize', () => { for (const P of PANES) { fitPane(P); P.view = {...P.fit}; } syncPol(); syncSize(); refresh(); });
+document.addEventListener('keydown', e => { if (e.key==='Escape' && document.activeElement!==$('#q')) { S.sel = null; refresh(); renderPanel(); writeHash(); } });
+
+/* ---------- tooltip ---------- */
+const tip = $('#tip');
+function valStr(pol, id, key) {
+  const n = NET[pol].nodes.get(id); if (!n) return null;
+  if (n[key]==null) return 'n/a';
+  return `${M[key].fmt(n[key])} <span style="color:var(--ink-3)">(#${NET[pol].ranks[key].get(id)} of ${NET[pol].ranks[key].n})</span>`;
+}
+function nodeTip(id, pol, e) {
+  if (isOff(id)) return;
+  tip.innerHTML = `<div class="t1">${dotOf(id)}${esc(LABEL(id))}</div><div class="t2">${esc(TYPE(id))}</div>
+    <div class="t3">${M[S.size].t}: ${valStr(pol,id,S.size)}${S.size!=='deg' ? `<br>Degree: ${valStr(pol,id,'deg')}` : ''}</div>`;
+  tip.classList.add('show'); moveTip(e);
+}
+function moveTip(e) { const pad=16, r=tip.getBoundingClientRect(); let x=e.clientX+pad, y=e.clientY+pad;
+  if (x+r.width>innerWidth-8) x=e.clientX-r.width-pad; if (y+r.height>innerHeight-8) y=Math.max(8,innerHeight-r.height-8);
+  tip.style.left=x+'px'; tip.style.top=y+'px'; }
+function hideTip() { tip.classList.remove('show'); }
+
+/* ---------- panel ---------- */
+const panel = $('#panel');
+const f3 = v => v.toFixed(3);
+const METRICS = [
+  {k:'nodes', t:'Nodes', a:'nodesA', fmt:v=>v},
+  {k:'edges', t:'Edges', fmt:v=>v},
+  {k:'density', t:'Density', a:'densityA', fmt:f3},
+  {k:'avgdeg', t:'Average degree', a:'avgdegA', fmt:v=>v.toFixed(2)},
+  {k:'apl', t:'APL', fmt:f3},
+  {k:'clust', t:'Clustering', a:'clustA', fmt:f3},
+  {k:'mod', t:'Modularity', fmt:f3},
+  {k:'comps', t:'Components (Active)', fmt:v=>v},
+];
+function metricsTable() {
+  const pols = visPols();
+  const head = `<tr><th></th>${pols.map(p=>`<th><span class="pk"><i style="background:${POLCOLOR[p]}"></i>${POLSHORT[p]}</span></th>`).join('')}</tr>`;
+  return `<table class="mt">${head}${METRICS.map(m => `<tr><td>${m.t}</td>${pols.map(p => { const x = DATA.metrics[p];
+    return `<td>${m.fmt(x[m.k])}${m.a?` <span class="a">(${m.fmt(x[m.a])})</span>`:''}</td>`; }).join('')}</tr>`).join('')}</table>`;
+}
+function topList(pol, key, n=10) {
+  const arr = [...NET[pol].nodes.values()].filter(x=>x[key]!=null).sort((a,b)=>b[key]-a[key]).slice(0,n);
+  const mx = arr[0][key] || 1;
+  return `<div class="tl">${visPols().length>1?`<div class="h"><span class="pk"><i style="background:${POLCOLOR[pol]}"></i></span>${POLSHORT[pol]}</div>`:''}
+    ${arr.map(x => `<div class="row" data-id="${x.id}"><span class="n">${NET[pol].ranks[key].get(x.id)}</span>${dotOf(x.id)}<span class="nm">${esc(LABEL(x.id))}</span><span class="v">${M[key].fmt(x[key])}</span>
+      <span class="b" style="width:calc((100% - 34px) * ${(x[key]/mx).toFixed(3)});background:${T[TYPE(x.id)].ink}"></span></div>`).join('')}</div>`;
+}
+const BINS = [[1,1,'1'],[2,2,'2'],[3,4,'3–4'],[5,9,'5–9'],[10,19,'10–19'],[20,39,'20–39'],[40,999,'40+']];
+function degreeChart() {
+  const pols = visPols(), W = 372, H = 120, padL = 30, padB = 20, bw = (W-padL)/BINS.length;
+  const shares = pols.map(p => { const ds = [...NET[p].nodes.values()].map(n=>n.deg);
+    return BINS.map(([lo,hi]) => ds.filter(d=>d>=lo&&d<=hi).length / ds.length); });
+  const mx = Math.max(...shares.flat()), ymax = Math.ceil(mx*10)/10;
+  let s = `<svg viewBox="0 0 ${W} ${H}" height="${H}">`;
+  for (let g=0; g<=ymax+1e-9; g+=0.1) { const y = (H-padB)*(1-g/ymax); s += `<line x1="${padL}" x2="${W}" y1="${y}" y2="${y}" stroke="#eef0f3"/><text x="${padL-5}" y="${y+3.5}" font-size="10" fill="#9aa1ab" text-anchor="end">${Math.round(g*100)}%</text>`; }
+  BINS.forEach((b,i) => {
+    const gw = bw*.7, w = gw/pols.length;
+    pols.forEach((p,j) => { const v = shares[j][i], h = (H-padB)*v/ymax, x = padL + i*bw + bw*.15 + j*w;
+      s += `<rect x="${x.toFixed(1)}" y="${(H-padB-h).toFixed(1)}" width="${(w-1).toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${POLCOLOR[p]}" opacity=".85"><title>${POLSHORT[p]} · degree ${b[2]}: ${(v*100).toFixed(1)}% of organizations</title></rect>`; });
+    s += `<text x="${padL + i*bw + bw/2}" y="${H-5}" font-size="10.5" fill="#7b828c" text-anchor="middle">${b[2]}</text>`;
+  });
+  return s + '</svg>';
+}
+function compositionChart() {
+  const pols = visPols(), W = 372, barH = 16, gap = 6;
+  let rows = [];
+  for (const p of pols) {
+    const ns = [...NET[p].nodes.values()];
+    const cnt = Object.fromEntries(TYPES.map(t=>[t.key,0])), ends = Object.fromEntries(TYPES.map(t=>[t.key,0]));
+    ns.forEach(n => { cnt[TYPE(n.id)]++; ends[TYPE(n.id)] += n.deg; });
+    const tot = ns.length, te = ns.reduce((a,n)=>a+n.deg,0);
+    rows.push({p, lab:'Organizations', vals:TYPES.map(t=>cnt[t.key]/tot), raw:TYPES.map(t=>cnt[t.key])});
+    rows.push({p, lab:'Link ends', vals:TYPES.map(t=>ends[t.key]/te), raw:TYPES.map(t=>ends[t.key])});
+  }
+  const labW = pols.length>1 ? 150 : 92, H = rows.length*(barH+gap) + (pols.length>1 ? 8 : 0);
+  let s = `<svg viewBox="0 0 ${W} ${H}" height="${H}">`, y = 0;
+  rows.forEach((r,i) => {
+    if (pols.length>1 && i===2) y += 8;
+    s += `<text x="0" y="${y+barH/2+4}" font-size="11" fill="#4a515b">${pols.length>1?POLSHORT[r.p]+' · ':''}${r.lab}</text>`;
+    let x = labW; const ww = W - labW;
+    r.vals.forEach((v,k) => { const w = ww*v; const t = TYPES[k];
+      s += `<rect x="${x.toFixed(1)}" y="${y}" width="${Math.max(0,w-1).toFixed(1)}" height="${barH}" fill="${t.fill}" stroke="${darken(t.fill,.6)}" stroke-width=".5"><title>${r.lab} · ${t.key}: ${(v*100).toFixed(1)}% (${r.raw[k]})</title></rect>`;
+      if (v > .085) s += `<text x="${(x+w/2).toFixed(1)}" y="${y+barH/2+3.8}" font-size="10" fill="#1b1f24" text-anchor="middle" pointer-events="none">${Math.round(v*100)}%</text>`;
+      x += w; });
+    y += barH + gap;
+  });
+  return s + '</svg>';
+}
+function mixMatrix(pol) {
+  const idx = Object.fromEntries(TYPES.map((t,i)=>[t.key,i]));
+  const m = TYPES.map(()=>TYPES.map(()=>0)); const E = NET[pol].edges.length;
+  for (const [a,b] of NET[pol].edges) { const i = idx[TYPE(a)], j = idx[TYPE(b)]; const [r,c] = i>=j ? [i,j] : [j,i]; m[r][c]++; }
+  const mx = Math.max(...m.flat());
+  let h = `<div>${visPols().length>1?`<div class="h"><span class="pk"><i style="background:${POLCOLOR[pol]}"></i></span>${POLSHORT[pol]}</div>`:''}<table class="mx"><tr><th></th>${TYPES.map(t=>`<th>${t.short}</th>`).join('')}</tr>`;
+  TYPES.forEach((t,i) => {
+    h += `<tr><th class="r">${t.short}</th>`;
+    TYPES.forEach((u,j) => {
+      if (j>i) { h += '<td></td>'; return; }
+      const v = m[i][j], sh = v/E, a = v/mx;
+      h += `<td style="background:rgba(43,52,64,${(0.06+0.8*a).toFixed(3)});color:${a>.45?'#fff':'#1b1f24'}" title="${t.key} – ${u.key}: ${v} links (${(sh*100).toFixed(1)}%)">${v?(sh*100).toFixed(sh<.1?1:0):''}</td>`;
+    });
+    h += '</tr>';
+  });
+  return h + '</table></div>';
+}
+function nodeCard(id) {
+  const cellOf = (p, key) => { const n = NET[p].nodes.get(id); if (!n) return '<span class="a">not active</span>'; if (n[key]==null) return '<span class="a">n/a</span>';
+    return `${M[key].fmt(n[key])}<span class="rk">#${NET[p].ranks[key].get(id)}</span>`; };
+  const rows = MEASURES.map(m => `<tr><td>${m.t}</td>${POLS.map(p => `<td>${cellOf(p, m.key)}</td>`).join('')}</tr>`).join('');
+  let partners = '';
+  for (const p of visPols()) {
+    const net = NET[p]; if (!net.nodes.has(id)) continue;
+    const ps = net.adj.get(id).slice().sort((a,b)=>net.nodes.get(b).deg-net.nodes.get(a).deg);
+    const byType = TYPES.map(t => [t, ps.filter(o=>TYPE(o)===t.key).length]).filter(x=>x[1]);
+    partners += `<div class="mini" style="${visPols().length>1?`color:${POLCOLOR[p]}`:''}">${visPols().length>1?POLSHORT[p]+' · ':''}${ps.length} partners · ${byType.map(([t,c])=>`${c} ${t.short}`).join(', ')}</div>
+      <div class="tags">${ps.map(o=>`<span class="tag2" data-id="${o}">${dotOf(o)}${esc(LABEL(o))}<span class="s">${net.nodes.get(o).deg}</span></span>`).join('')}</div>`;
+  }
+  const links = POLS.filter(p=>NET[p].nodes.has(id)).map(p => `<a class="btn" href="rationales.html#policy=${p}&node=${id}">Why these partners? · ${POLSHORT[p]} →</a>`).join('');
+  return `<div class="card"><div class="top"><div><div class="k">Organization</div><h3>${esc(LABEL(id))}</h3>
+      <span class="pill">${dotOf(id)}${esc(TYPE(id))}</span></div>
+      <button class="x" id="closeSel" title="Clear selection"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+    <table class="mt" style="margin-top:12px"><tr><th></th>${POLS.map(p=>`<th><span class="pk"><i style="background:${POLCOLOR[p]}"></i>${POLSHORT[p]}</span></th>`).join('')}</tr>${rows}</table>
+    ${partners || '<div class="note">Not active in this policy network.</div>'}
+    <div>${links}</div></div>`;
+}
+function renderPanel() {
+  const pols = visPols();
+  const h = `<div class="pn">
+    <div class="k">Baseline · Phase 0</div>
+    <h2>${pols.length>1 ? 'Mission vs. Diffusion' : POLNAME[pols[0]]+' policy'}</h2>
+    <p class="lead">Each link joins two organizations that both expressed an intention to collaborate.</p>
+    ${S.sel!=null ? `<div class="sec">${nodeCard(S.sel)}</div>` : ''}
+    <div class="sec"><div class="k">Network metrics <span class="sub">Full (Active)</span></div>${metricsTable()}</div>
+    <div class="sec"><div class="k">Most central organizations <span class="sub">${M[S.size].long}</span></div>
+      <div class="tops">${pols.map(p=>topList(p,S.size)).join('')}</div></div>
+    <div class="sec"><div class="k">Degree distribution <span class="sub">share of active organizations</span></div>
+      <div class="chart">${degreeChart()}</div>${pols.length>1?`<div class="ckey">${pols.map(p=>`<span class="pk"><i style="background:${POLCOLOR[p]}"></i>${POLSHORT[p]}</span>`).join('')}</div>`:''}</div>
+    <div class="sec"><div class="k">Composition by organization type</div><div class="chart">${compositionChart()}</div>
+      <div class="note">Link ends: each link counts once for each of its two organizations (sum of degrees).</div></div>
+    <div class="sec"><div class="k">Who links with whom <span class="sub">% of all links</span></div><div class="mxwrap">${pols.map(mixMatrix).join('')}</div></div>
+    <div class="sec"><div class="k">About these measures</div>
+      <div class="note">Self-loops are removed and only organizations with at least one mutual link are shown (Active). Degree = number of mutual partners. Betweenness is unnormalized. Closeness is computed within the main connected component (detached pairs: n/a). Eigenvector centrality is scaled so the highest value in each network is 1. APL is averaged over all reachable pairs. Node size uses one scale for both policies.</div></div>
+  </div>`;
+  const st = panel.scrollTop; panel.innerHTML = h; panel.scrollTop = st;
+  panel.querySelectorAll('[data-id]').forEach(el => { const id = +el.dataset.id;
+    el.onclick = () => select(id, true);
+    el.onmouseenter = () => { S.hover = id; refresh(); }; el.onmouseleave = () => { S.hover = null; refresh(); }; });
+  const cs = panel.querySelector('#closeSel'); if (cs) cs.onclick = () => { S.sel = null; refresh(); renderPanel(); writeHash(); };
+}
+
+/* ---------- legend ---------- */
+const legend = $('#legend');
+for (const t of TYPES) {
+  const b = document.createElement('button'); b.className = 'chip';
+  b.innerHTML = `<span class="dot" style="background:${t.fill};border:1.5px solid ${darken(t.fill,.5)};box-shadow:none"></span>${t.key}`;
+  b.onclick = () => { S.off.has(t.key) ? S.off.delete(t.key) : S.off.add(t.key); b.classList.toggle('off', S.off.has(t.key)); resetChip.classList.toggle('show', S.off.size>0); refresh(); };
+  legend.appendChild(b);
+}
+const resetChip = document.createElement('button'); resetChip.className = 'chip reset'; resetChip.textContent = 'Show all';
+resetChip.onclick = () => { S.off.clear(); legend.querySelectorAll('.chip').forEach(c=>c.classList.remove('off')); resetChip.classList.remove('show'); refresh(); };
+legend.appendChild(resetChip);
+
+/* ---------- search ---------- */
+const q = $('#q'), res = $('#results');
+const ALL = [...new Set(POLS.flatMap(p=>[...NET[p].nodes.keys()]))].sort((a,b)=>LABEL(a).localeCompare(LABEL(b)));
+let hits = [], act = 0;
+function runSearch() { const s = q.value.trim().toLowerCase(); if (!s) { res.classList.remove('open'); return; }
+  hits = ALL.filter(id=>LABEL(id).toLowerCase().includes(s)).sort((a,b)=>LABEL(a).toLowerCase().indexOf(s)-LABEL(b).toLowerCase().indexOf(s)).slice(0,10); act = 0; drawResults(); }
+function drawResults() {
+  res.innerHTML = hits.length ? hits.map((id,i) => { const inn = visPols().filter(p=>NET[p].nodes.has(id));
+    const tag = inn.length ? '' : `<span class="tag">Only in ${POLSHORT[POLS.find(p=>NET[p].nodes.has(id))]}</span>`;
+    return `<div class="res${i===act?' act':''}" data-i="${i}">${dotOf(id)}<span class="nm">${esc(LABEL(id))}</span>${tag}</div>`; }).join('')
+    : '<div class="res empty">No matching organization</div>';
+  res.classList.add('open');
+  res.querySelectorAll('.res[data-i]').forEach(r => { r.onmousedown = e => { e.preventDefault(); pick(hits[+r.dataset.i]); }; });
+}
+function pick(id) { q.value = LABEL(id); res.classList.remove('open'); q.blur();
+  if (isOff(id)) { S.off.delete(TYPE(id)); legend.querySelectorAll('.chip').forEach((c,i)=>{ if (TYPES[i] && TYPES[i].key===TYPE(id)) c.classList.remove('off'); }); resetChip.classList.toggle('show', S.off.size>0); }
+  if (!visPols().some(p=>NET[p].nodes.has(id))) { S.sel = id; setPol(POLS.find(p=>NET[p].nodes.has(id))); return; }
+  select(id, true); }
+q.addEventListener('input', runSearch); q.addEventListener('focus', runSearch);
+q.addEventListener('blur', () => setTimeout(()=>res.classList.remove('open'),120));
+q.addEventListener('keydown', e => { if (!res.classList.contains('open') || !hits.length) return;
+  if (e.key==='ArrowDown') { act=(act+1)%hits.length; drawResults(); e.preventDefault(); }
+  else if (e.key==='ArrowUp') { act=(act-1+hits.length)%hits.length; drawResults(); e.preventDefault(); }
+  else if (e.key==='Enter') { pick(hits[act]); e.preventDefault(); }
+  else if (e.key==='Escape') { res.classList.remove('open'); q.blur(); } });
+
+/* ---------- init ---------- */
+function init() { readHash(); syncPol(); syncSize(); buildPanes(false); renderPanel(); writeHash(); }
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(init); else init();
+</script>
+</body>
+</html>
