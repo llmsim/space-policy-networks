@@ -1,2 +1,2 @@
-# partner_rationales_network
-partner_rationales_network
+# space-policy-networks
+space-policy-networks
