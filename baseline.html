@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Baseline Collaboration Network Analysis · U.S. Space Sector</title>
+<style>
+  :root{
+    --ink:#16191d; --ink-2:#4a515b; --ink-3:#7b828c; --line:#e7e9ed; --bg:#ffffff; --bg-2:#f7f8f9;
+    --serif:"Iowan Old Style","Charter","Palatino Linotype","Book Antiqua",Georgia,serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,"Helvetica Neue",Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:14px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+  button{font:inherit;color:inherit}
+  .app{display:grid;grid-template-rows:auto 1fr;height:100vh;min-height:620px}
+  header{position:relative;padding:14px 28px 14px;border-bottom:1px solid var(--line)}
+  .site{font-size:12px;color:var(--ink-3);margin:0 0 6px;letter-spacing:.01em}
+  .nav span.soon{font-size:12px;font-weight:600;letter-spacing:.02em;color:#b8bec6;padding:4px 8px;cursor:default}
+  .disc{margin:6px 0 0;font-size:12px;color:var(--ink-3);font-style:italic}
+  .nav{display:flex;gap:4px;margin:0 0 10px -8px}
+  .nav a{font-size:12px;font-weight:600;letter-spacing:.02em;color:var(--ink-3);text-decoration:none;padding:4px 8px;border-radius:6px}
+  .nav a:hover{background:var(--bg-2);color:var(--ink)}
+  .nav a.on{color:var(--ink);background:var(--bg-2)}
+  h1{font:600 22px/1.25 var(--serif);letter-spacing:-.005em;margin:0;color:#0f1216;max-width:calc(100% - 300px)}
+  .hint{margin:5px 0 0;color:var(--ink-3);font-size:13px}
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin-top:14px}
+  .grp{display:flex;align-items:center;gap:8px}
+  .grp > .lab{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+  .seg{position:relative;display:flex;background:var(--bg-2);border:1px solid var(--line);border-radius:10px;padding:3px}
+  .seg button{position:relative;z-index:1;border:0;background:none;padding:6px 12px;border-radius:7px;cursor:pointer;font-size:13px;font-weight:550;color:var(--ink-3);transition:color .25s;white-space:nowrap}
+  .seg button.on{color:var(--ink)}
+  .seg .thumb{position:absolute;top:3px;bottom:3px;border-radius:7px;background:#fff;box-shadow:0 1px 2px rgba(16,24,40,.08),0 0 0 1px rgba(16,24,40,.06);transition:left .35s cubic-bezier(.4,0,.2,1),width .35s cubic-bezier(.4,0,.2,1)}
+  .search{position:absolute;right:28px;top:14px;width:260px;z-index:20}
+  .search input{width:100%;height:34px;border:1px solid var(--line);border-radius:10px;padding:0 12px 0 32px;font:inherit;font-size:13px;background:#fff;outline:none;transition:border-color .15s, box-shadow .15s}
+  .search input:focus{border-color:#b9c0ca;box-shadow:0 0 0 3px rgba(31,42,55,.06)}
+  .search svg{position:absolute;left:10px;top:10px;color:var(--ink-3)}
+  .results{position:absolute;top:38px;left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 32px rgba(16,24,40,.12);padding:4px;z-index:30;display:none;max-height:340px;overflow:auto}
+  .results.open{display:block}
+  .res{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:7px;cursor:pointer;font-size:13px}
+  .res.act{background:var(--bg-2)}
+  .res .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .res .tag{font-size:11px;color:var(--ink-3);white-space:nowrap}
+  .res.empty{color:var(--ink-3);cursor:default}
+  .dot{width:9px;height:9px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18);display:inline-block}
+
+  main{display:grid;grid-template-columns:minmax(0,1fr) 420px;min-height:0}
+  .panes{position:relative;display:flex;min-height:0;min-width:0;border-right:1px solid var(--line);background:radial-gradient(circle at 1px 1px,#eef0f3 1px,transparent 0) 0 0/22px 22px}
+  .pane{position:relative;flex:1;min-width:0;min-height:0;overflow:hidden}
+  .pane + .pane{border-left:1px solid var(--line)}
+  .pane svg{position:absolute;inset:0;width:100%;height:100%;cursor:grab;user-select:none;touch-action:none}
+  .pane svg.drag{cursor:grabbing}
+  .pane .st{fill:#eceef2;stroke:#fff;stroke-width:1.1;vector-effect:non-scaling-stroke}
+  .pane .ina{fill:#fff;stroke:#9aa1ab;stroke-width:.9}
+  .loc{display:block;margin-top:6px;font-size:12.5px;color:var(--ink-3)}
+  .kicker{position:absolute;left:20px;top:14px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);font-weight:650;pointer-events:none;display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.85);padding:3px 8px 3px 6px;border-radius:6px}
+  .kicker .sw{width:14px;height:3px;border-radius:2px}
+  .panes.fade .pane{animation:fadeIn .45s ease}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  .bar{position:absolute;left:14px;right:14px;bottom:12px;display:flex;justify-content:space-between;align-items:flex-end;gap:10px;pointer-events:none;z-index:5}
+  .legend{display:flex;flex-wrap:wrap;gap:2px;background:rgba(255,255,255,.93);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:12px;padding:4px;pointer-events:auto}
+  .chip{display:flex;align-items:center;gap:7px;border:0;background:none;padding:4px 9px;border-radius:8px;cursor:pointer;font-size:12.5px;color:var(--ink-2);transition:background .15s,opacity .2s}
+  .chip:hover{background:var(--bg-2)}
+  .chip.off{opacity:.38}
+  .chip.off .dot{background:transparent!important}
+  .chip.reset{color:var(--ink-3);font-size:12px;display:none}
+  .chip.reset.show{display:flex}
+  .zoom{display:flex;flex-direction:column;background:rgba(255,255,255,.93);border:1px solid var(--line);border-radius:12px;padding:4px;pointer-events:auto}
+  .zoom button{width:32px;height:32px;border:0;background:none;border-radius:8px;cursor:pointer;color:var(--ink-2);display:grid;place-items:center}
+  .zoom button:hover{background:var(--bg-2)}
+  .lbl{font:600 11px var(--sans);fill:#1b1f24;paint-order:stroke;stroke:#fff;stroke-width:3.2px;stroke-linejoin:round;pointer-events:none;text-anchor:middle;dominant-baseline:central}
+  .node circle{cursor:pointer}
+
+  .tip{position:fixed;z-index:50;pointer-events:none;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 36px rgba(16,24,40,.14);padding:10px 13px;max-width:320px;opacity:0;transform:translateY(4px);transition:opacity .12s, transform .12s}
+  .tip.show{opacity:1;transform:none}
+  .tip .t1{font-weight:650;font-size:13.5px;display:flex;align-items:center;gap:7px}
+  .tip .t2{font-size:12px;color:var(--ink-3);margin-top:2px}
+  .tip .t3{font-size:12.5px;color:var(--ink-2);margin-top:6px;font-variant-numeric:tabular-nums}
+
+  aside{overflow:auto;min-height:0;background:#fff}
+  .pn{padding:22px 24px 40px}
+  .k{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+  .pn h2{font:600 20px/1.25 var(--serif);margin:5px 0 6px;color:#0f1216}
+  .lead{color:var(--ink-2);font-size:13px;margin:0}
+  .sec{margin-top:24px}
+  .sec > .k{margin-bottom:8px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .sec > .k .sub{letter-spacing:0;text-transform:none;font-weight:500;color:var(--ink-3);font-size:11.5px}
+  table.mt{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+  table.mt th{font-weight:600;color:var(--ink-3);font-size:11.5px;text-align:right;padding:0 0 6px;white-space:nowrap}
+  table.mt th:first-child{text-align:left}
+  table.mt td{padding:6px 0;border-top:1px solid var(--line);text-align:right;white-space:nowrap}
+  table.mt td:first-child{text-align:left;color:var(--ink-2)}
+  table.mt td .a{color:var(--ink-3)}
+  table.mt td .rk{color:var(--ink-3);font-size:11.5px;margin-left:4px}
+  .pk{display:inline-flex;align-items:center;gap:6px}
+  .pk i{width:12px;height:3px;border-radius:2px;display:inline-block}
+  .tops{display:grid;gap:14px}
+  .tops.two{grid-template-columns:1fr 1fr;gap:16px}
+  .tl .h{font-size:12px;font-weight:650;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+  .row{position:relative;display:flex;align-items:center;gap:7px;padding:4px 6px;margin:0 -6px;border-radius:7px;cursor:pointer;font-size:12.5px}
+  .row:hover{background:var(--bg-2)}
+  .row .n{color:var(--ink-3);font-size:11px;width:14px;text-align:right;font-variant-numeric:tabular-nums}
+  .row .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .row .v{font-variant-numeric:tabular-nums;color:var(--ink-2);font-size:12px}
+  .row .b{position:absolute;left:26px;bottom:1px;height:2px;border-radius:2px;opacity:.55}
+  .chart svg{display:block;width:100%;overflow:visible}
+  .ckey{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:11.5px;color:var(--ink-3);margin-top:6px}
+  .ckey span{display:inline-flex;align-items:center;gap:6px}
+  .note{font-size:12px;color:var(--ink-3);line-height:1.55;margin-top:6px}
+  .card{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:#fff;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+  .card .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+  .card h3{font:600 18px/1.25 var(--serif);margin:3px 0 6px}
+  .x{border:0;background:none;cursor:pointer;color:var(--ink-3);padding:2px;border-radius:6px;display:grid;place-items:center}
+  .x:hover{background:var(--bg-2);color:var(--ink)}
+  .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:2px 10px 2px 8px;font-size:12px;color:var(--ink-2)}
+  .mini{font-size:11px;color:var(--ink-3);margin:12px 0 4px;letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+  .tags{display:flex;flex-wrap:wrap;gap:6px}
+  .tag2{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:2px 9px 2px 7px;font-size:12px;color:var(--ink-2);background:#fff;cursor:pointer}
+  .tag2:hover{background:var(--bg-2)}
+  .tag2 .s{font-size:10.5px;color:var(--ink-3)}
+  .btn{display:inline-flex;align-items:center;gap:6px;margin:12px 8px 0 0;border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 11px;cursor:pointer;font-size:12.5px;color:var(--ink);text-decoration:none}
+  .btn:hover{background:var(--bg-2)}
+  .empty{font-size:12.5px;color:var(--ink-3)}
+  .mx{border-collapse:collapse;font-size:11px;font-variant-numeric:tabular-nums}
+  .mx th{font-weight:600;color:var(--ink-3);padding:2px 3px;white-space:nowrap}
+  .mx th.r{text-align:right}
+  .mx td{width:40px;height:26px;text-align:center;border:1px solid #fff;border-radius:3px}
+  .mxwrap{display:grid;gap:14px}
+  .mxwrap .h{font-size:12px;font-weight:650;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+
+  @media (max-width:1100px){
+    main{grid-template-columns:1fr;grid-template-rows:70vh auto}
+    .panes{border-right:0;border-bottom:1px solid var(--line)}
+    .app{height:auto}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <p class="site">How Policy Orientation Shapes Innovation Ecosystems: An LLM-Based Scenario Analysis of Network Formation in the U.S. Space Sector</p>
+    <nav class="nav"><a href="baseline.html" class="on">Baseline</a><a href="dynamics.html">Dynamic Scenarios</a><a href="robustness.html">Robustness &amp; Sensitivity</a><a href="rationales.html">Rationales</a></nav>
+    <h1>Baseline Collaboration Network Analysis</h1>
+    <p class="hint">Explore collaboration networks under mission- and diffusion-oriented policies. Select a centrality measure to resize organizations, or click a node to compare its position across the two policies.</p>
+    <div class="toolbar">
+      <div class="grp"><span class="lab">Layout</span><div class="seg" id="segLay"></div></div>
+      <div class="grp"><span class="lab">Policy</span><div class="seg" id="segPol"></div></div>
+      <div class="grp"><span class="lab">Size by</span><div class="seg" id="segSize"></div></div>
+    </div>
+    <div class="search">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="text" placeholder="Search organizations" autocomplete="off" spellcheck="false">
+      <div class="results" id="results"></div>
+    </div>
+  </header>
+  <main>
+    <div class="panes" id="panes">
+      <div class="bar">
+        <div class="legend" id="legend"></div>
+        <div class="zoom">
+          <button id="zin" title="Zoom in"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+          <button id="zout" title="Zoom out"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+          <button id="zfit" title="Reset view"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+        </div>
+      </div>
+    </div>
+    <aside id="panel"></aside>
+  </main>
+</div>
+<div class="tip" id="tip"></div>
+
+<script>
+const DATA = {"nodes":{"1":["NASA","Government"],"2":["USSF","Government"],"3":["DARPA","Government"],"5":["Lockheed Martin","Large Enterprise"],"6":["Boeing","Large Enterprise"],"7":["Northrop Grumman","Large Enterprise"],"10":["L3Harris","Large Enterprise"],"11":["BWX Technologies","Large Enterprise"],"12":["Moog Inc.","Mid-sized Enterprise"],"13":["Hexcel Corp.","Mid-sized Enterprise"],"14":["Kratos Defense & Security","Mid-sized Enterprise"],"15":["Aerojet Rocketdyne","Mid-sized Enterprise"],"16":["Mercury Systems","Mid-sized Enterprise"],"20":["Relativity Space","Startup"],"21":["Sierra Space","Startup"],"23":["United Launch Alliance","Large Enterprise"],"36":["TriSept Corporation","SME"],"38":["A&R Tarpaulins","SME"],"40":["Advanced Inspection Technologies","SME"],"41":["Air Products and Chemicals","Large Enterprise"],"42":["ai Solutions Inc","Mid-sized Enterprise"],"44":["Amphenol Aerospace","Large Enterprise"],"45":["Analytical Graphics","Mid-sized Enterprise"],"46":["Astro Pak","SME"],"47":["Brandywine Communications","SME"],"48":["BRPH","Mid-sized Enterprise"],"49":["Concurrent Real-Time","Mid-sized Enterprise"],"50":["Craig Technologies","SME"],"52":["ENSCO","Mid-sized Enterprise"],"55":["Honeywell Aerospace","Large Enterprise"],"56":["Infinity Fuel Cell and Hydrogen","SME"],"57":["Jacobs","Large Enterprise"],"58":["Omitron, Inc.","SME"],"59":["Pacific Scientific Energetic Materials","Large Enterprise"],"60":["Precision Fluid Controls","SME"],"61":["RS&H","Mid-sized Enterprise"],"62":["Space Information Laboratories","SME"],"63":["Space Vector Corporation","SME"],"64":["United Electronic Industries","SME"],"69":["Aerospace Fabrication","Mid-sized Enterprise"],"70":["Airborne Systems","Large Enterprise"],"71":["American Aerospace Controls","SME"],"72":["Applied Aerospace Structures Corporation","Mid-sized Enterprise"],"73":["Atec, Inc.","Mid-sized Enterprise"],"74":["CDA InterCorp","SME"],"75":["Collins Aerospace","Large Enterprise"],"76":["Curtiss-Wright Corp","Large Enterprise"],"77":["Dynamic Fabrication","SME"],"78":["Dynetics","Mid-sized Enterprise"],"79":["EaglePicher Technologies","Mid-sized Enterprise"],"80":["Ecliptic","Startup"],"81":["Ensign-Bickford Aerospace & Defense","Mid-sized Enterprise"],"82":["Infinite Composites","Startup"],"83":["Ingenium Aerospace","SME"],"84":["Jansens Aircraft Systems Controls","SME"],"85":["Kaman Corporation","Large Enterprise"],"86":["Leggett & Platt Aerospace","Large Enterprise"],"87":["Marotta Controls","Mid-sized Enterprise"],"88":["Oceaneering","Large Enterprise"],"89":["Parabilis Space Technologies","Startup"],"90":["Paragon Space Development Corporation","SME"],"91":["Sierra Nevada Corporation","Large Enterprise"],"92":["Standex Engineering Technologies Group","Mid-sized Enterprise"],"93":["Teledyne Brown Engineering","Mid-sized Enterprise"],"94":["Triton Space Technologies","Startup"],"95":["Turbocam International","Mid-sized Enterprise"],"96":["Ursa Major","Startup"],"97":["Valcor Engineering Corporation","Mid-sized Enterprise"],"98":["VPT","Mid-sized Enterprise"],"99":["Zin Technologies","Mid-sized Enterprise"],"101":["Astronics Corporation","Mid-sized Enterprise"],"102":["Baughn Engineering","SME"],"103":["Dytran Instruments, Inc.","SME"],"104":["3D Systems","Large Enterprise"],"105":["Ansys","Large Enterprise"],"106":["SpaceWorks","Startup"],"107":["MIT","University"],"108":["Caltech","University"],"110":["Georgia Tech","University"],"111":["University of Michigan","University"],"112":["Purdue University","University"],"113":["University of Illinois Urbana-Champaign","University"],"114":["University of Texas Austin","University"],"115":["Texas A&M University","University"],"118":["University of Maryland College Park","University"],"119":["University of Colorado Boulder","University"],"121":["Johns Hopkins University","University"],"124":["Cornell University","University"],"139":["Air Force Institute of Technology","University"],"4":["FAA AST","Government"],"8":["SpaceX","Startup"],"9":["Blue Origin","Startup"],"18":["Rocket Lab","Startup"],"19":["Firefly Aerospace","Startup"],"22":["Axiom Space","Startup"],"26":["bluShift Aerospace","Startup"],"28":["CubeCab","Startup"],"31":["Fenix Space","Startup"],"32":["Launcher","Startup"],"33":["Nanoracks","Mid-sized Enterprise"],"34":["Spaceflight Industries","Mid-sized Enterprise"],"39":["Adaptive Launch Solutions","SME"],"43":["AMERGINT Technologies","SME"],"51":["Dunmore Aerospace","Mid-sized Enterprise"],"53":["Epsilon3","Startup"],"54":["Haigh-Farr, Inc","SME"],"65":["ABL Space Systems","Startup"],"100":["Xtenti","Startup"],"127":["University of Florida","University"],"131":["Embry–Riddle Aeronautical University","University"],"135":["University of California Davis","University"],"144":["University of Central Florida","University"],"17":["Virgin Galactic","Startup"],"24":["Aevum","Startup"],"25":["Astra Space, Inc.","Startup"],"27":["Celestis","SME"],"29":["Elysium Space","Startup"],"30":["EXOS Aerospace","Startup"],"35":["SpinLaunch","Startup"],"37":["UP Aerospace","SME"],"66":["iRocket","Startup"],"67":["Pipeline2Space","Startup"],"68":["RocketStar","Startup"],"109":["Stanford University","University"],"116":["University of California Berkeley","University"],"117":["University of California Los Angeles","University"],"120":["Princeton University","University"],"122":["University of Southern California","University"],"123":["University of Washington, Seattle","University"],"125":["Ohio State University","University"],"126":["Pennsylvania State University","University"],"128":["University of Minnesota, Twin Cities","University"],"129":["North Carolina State University","University"],"130":["Virginia Tech","University"],"132":["University of Notre Dame","University"],"133":["University of Arizona","University"],"134":["University at Buffalo, SUNY","University"],"136":["University of California San Diego","University"],"137":["Auburn University","University"],"138":["Boston University","University"],"140":["Arizona State University","University"],"141":["George Mason University","University"],"142":["University of Houston","University"],"143":["University of Tennessee Knoxville","University"],"145":["University of Kansas","University"],"146":["Wichita State University","University"]},"nets":{"mission":{"nodes":[[1,343.1,442.9,59,1832.599,0.7333,1.0],[2,656.0,750.1,12,114.31,0.4513,0.3415],[3,734.3,707.5,9,91.162,0.4018,0.2436],[5,676.2,646.0,8,17.891,0.5029,0.3348],[6,633.4,531.0,22,151.364,0.557,0.6312],[7,751.4,418.0,40,1092.772,0.6111,0.7794],[10,554.7,731.0,10,38.162,0.5087,0.3384],[11,831.8,799.5,1,0.0,0.2876,0.0189],[12,509.9,671.2,8,18.997,0.5,0.3217],[13,598.8,610.8,8,29.312,0.5116,0.3567],[14,679.4,249.4,4,11.94,0.449,0.1352],[15,612.0,669.8,10,33.839,0.5176,0.3846],[16,630.2,437.1,5,13.574,0.4211,0.1335],[20,301.8,57.3,2,0.0,0.3682,0.0619],[21,292.8,225.6,36,567.45,0.5432,0.6205],[23,513.7,563.6,24,213.637,0.55,0.6068],[36,31.8,722.1,2,1.006,0.3296,0.0188],[38,187.1,490.2,1,0.0,0.4251,0.0774],[40,82.3,230.7,2,0.0,0.3713,0.0614],[41,426.5,658.0,6,8.526,0.4916,0.2508],[42,130.8,642.6,6,73.547,0.4513,0.1195],[44,470.5,343.0,8,12.22,0.4681,0.2614],[45,84.3,579.9,5,40.731,0.4335,0.123],[46,139.5,356.0,6,26.417,0.4607,0.1721],[47,258.5,0.0,2,0.5,0.3235,0.0274],[48,211.3,680.1,5,32.015,0.4536,0.1299],[49,166.7,298.6,2,0.622,0.449,0.1255],[50,203.0,617.7,8,107.768,0.4835,0.2223],[52,162.0,558.5,4,3.067,0.4422,0.1087],[55,332.1,700.2,5,3.108,0.449,0.1513],[56,205.9,72.5,1,0.0,0.3534,0.048],[57,383.2,749.8,10,80.234,0.4731,0.2536],[58,0.0,682.3,3,1.833,0.3296,0.0202],[59,509.0,196.1,11,28.362,0.5116,0.3638],[60,429.9,249.6,3,1.522,0.4513,0.1474],[61,245.3,816.0,2,0.0,0.3259,0.0297],[62,439.1,85.8,8,47.0,0.449,0.2144],[63,496.5,129.7,7,17.905,0.5,0.2717],[64,149.3,205.5,2,0.622,0.449,0.1255],[69,167.8,452.1,1,0.0,0.4251,0.0774],[70,433.4,181.4,4,0.622,0.4536,0.1909],[71,168.5,131.6,4,43.213,0.456,0.1391],[72,584.3,297.4,7,8.358,0.4889,0.2934],[73,525.9,434.7,4,7.457,0.4757,0.1664],[74,115.7,274.7,2,0.622,0.449,0.1255],[75,369.8,599.3,4,4.847,0.4656,0.186],[76,606.7,357.7,11,62.396,0.5146,0.3836],[77,161.6,249.6,4,1.206,0.456,0.1495],[78,523.6,262.6,5,8.156,0.4656,0.2128],[79,507.8,63.5,4,0.0,0.44,0.1449],[80,216.8,311.8,2,0.622,0.449,0.1255],[81,569.0,164.2,11,31.179,0.5176,0.3862],[82,139.7,470.7,1,0.0,0.4251,0.0774],[83,521.5,326.5,2,0.0,0.4356,0.1071],[84,544.2,376.4,7,8.977,0.4944,0.2829],[85,371.8,291.9,4,1.298,0.4632,0.2006],[86,501.8,396.3,2,0.0,0.4356,0.1071],[87,602.1,235.8,14,39.426,0.5269,0.4815],[88,474.0,277.3,4,7.998,0.4889,0.2005],[89,364.1,111.2,2,0.0,0.4293,0.094],[90,431.1,312.0,4,0.983,0.4656,0.1898],[91,647.8,178.8,2,3.459,0.44,0.1084],[92,409.1,211.1,3,1.5,0.4513,0.1482],[93,572.2,462.9,5,0.551,0.4862,0.2555],[94,180.5,523.1,1,0.0,0.4251,0.0774],[95,581.8,414.8,5,18.282,0.4972,0.2427],[96,397.9,164.3,4,22.008,0.4656,0.1791],[97,520.0,479.5,3,0.385,0.4809,0.1847],[98,673.3,310.3,4,0.0,0.4783,0.2047],[99,136.4,424.2,3,4.997,0.4513,0.1339],[101,433.8,576.9,3,0.333,0.4314,0.109],[102,702.9,576.3,4,0.385,0.4835,0.2336],[103,555.0,505.9,5,8.252,0.4862,0.242],[104,558.9,644.7,5,5.024,0.4889,0.2532],[105,269.1,718.5,3,1.103,0.4378,0.1037],[106,262.1,660.9,2,0.0,0.4272,0.0854],[107,905.0,435.6,1,0.0,0.381,0.0603],[108,924.5,355.8,1,0.0,0.381,0.0603],[110,920.9,409.4,1,0.0,0.381,0.0603],[111,890.8,384.9,1,0.0,0.381,0.0603],[112,783.9,542.4,3,0.2,0.4,0.128],[113,895.5,314.9,1,0.0,0.381,0.0603],[114,987.7,370.3,2,0.0,0.3826,0.0654],[115,1000.0,397.2,2,0.0,0.3826,0.0654],[118,374.7,644.7,2,10.144,0.3946,0.0696],[119,937.5,449.6,1,0.0,0.381,0.0603],[121,909.2,478.0,1,0.0,0.381,0.0603],[124,879.4,345.0,1,0.0,0.381,0.0603],[139,719.8,872.9,1,0.0,0.3121,0.0264]],"edges":[[1,5],[1,6],[1,7],[1,10],[1,12],[1,13],[1,15],[1,38],[1,41],[1,42],[1,44],[1,46],[1,48],[1,49],[1,50],[1,52],[1,55],[1,57],[1,59],[1,60],[1,62],[1,63],[1,64],[1,69],[1,70],[1,71],[1,72],[1,73],[1,74],[1,75],[1,76],[1,77],[1,78],[1,79],[1,80],[1,81],[1,82],[1,83],[1,84],[1,85],[1,86],[1,87],[1,88],[1,89],[1,90],[1,92],[1,93],[1,94],[1,95],[1,96],[1,97],[1,98],[1,99],[1,101],[1,102],[1,103],[1,104],[1,105],[1,106],[2,3],[2,5],[2,6],[2,7],[2,10],[2,12],[2,13],[2,15],[2,16],[2,23],[2,57],[2,139],[3,5],[3,6],[3,10],[3,11],[3,13],[3,15],[3,16],[3,23],[5,6],[5,7],[5,10],[5,15],[5,23],[6,7],[6,10],[6,12],[6,13],[6,15],[6,21],[6,23],[6,72],[6,75],[6,76],[6,87],[6,90],[6,93],[6,96],[6,102],[6,103],[6,104],[6,112],[7,10],[7,12],[7,13],[7,14],[7,15],[7,23],[7,41],[7,59],[7,63],[7,72],[7,73],[7,76],[7,81],[7,84],[7,87],[7,88],[7,91],[7,93],[7,95],[7,97],[7,98],[7,102],[7,103],[7,104],[7,107],[7,108],[7,110],[7,111],[7,112],[7,113],[7,114],[7,115],[7,118],[7,119],[7,121],[7,124],[10,15],[10,41],[10,55],[10,57],[12,15],[12,23],[12,44],[12,55],[13,15],[13,21],[13,23],[14,16],[14,21],[14,78],[15,21],[16,21],[16,76],[20,21],[20,96],[21,23],[21,40],[21,44],[21,45],[21,46],[21,49],[21,50],[21,56],[21,59],[21,60],[21,63],[21,64],[21,70],[21,71],[21,74],[21,75],[21,76],[21,77],[21,78],[21,80],[21,81],[21,85],[21,87],[21,88],[21,90],[21,91],[21,92],[21,95],[21,96],[21,99],[23,41],[23,45],[23,50],[23,57],[23,76],[23,78],[23,81],[23,84],[23,85],[23,87],[23,93],[23,95],[23,97],[23,102],[23,103],[23,104],[36,50],[36,58],[40,46],[41,44],[41,57],[42,45],[42,50],[42,52],[42,58],[42,118],[44,46],[44,59],[44,73],[44,87],[45,50],[45,58],[46,48],[46,77],[47,62],[47,71],[48,50],[48,57],[48,61],[50,57],[52,55],[52,99],[55,75],[57,61],[57,104],[57,105],[59,62],[59,63],[59,70],[59,72],[59,81],[59,85],[59,87],[60,84],[62,63],[62,79],[62,81],[62,87],[62,89],[63,79],[63,81],[70,87],[71,77],[72,81],[72,87],[72,92],[73,101],[76,83],[76,84],[76,86],[76,87],[76,98],[78,81],[79,81],[81,87],[84,87],[84,93],[87,98],[88,90],[95,112],[101,103],[105,106],[114,115]]},"diffusion":{"nodes":[[1,507.3,342.7,7,24.912,0.3664,0.4223],[2,636.7,268.0,17,488.589,0.4267,0.7491],[3,623.3,346.0,9,50.726,0.3623,0.4661],[4,367.0,276.7,13,298.874,0.4424,0.6974],[5,426.7,222.5,9,183.364,0.4103,0.4923],[6,327.1,116.6,2,6.616,0.3,0.0596],[7,557.5,147.9,7,41.714,0.384,0.3836],[8,513.8,264.1,5,6.383,0.3429,0.3157],[9,490.6,294.3,4,4.476,0.3368,0.2455],[10,492.5,199.5,12,256.994,0.4424,0.6253],[12,623.5,185.6,12,521.978,0.4051,0.3277],[13,603.4,109.6,6,121.002,0.3582,0.2663],[14,324.0,547.8,3,5.132,0.3516,0.1895],[15,705.6,192.9,13,356.327,0.3983,0.4309],[16,553.5,460.2,4,207.674,0.3636,0.1399],[18,485.8,483.9,17,472.642,0.4211,0.707],[19,502.5,397.5,11,164.227,0.412,0.6316],[20,568.5,373.1,9,31.819,0.365,0.5253],[21,430.4,338.5,21,661.4,0.4593,1.0],[22,278.0,308.9,6,115.833,0.3692,0.2935],[23,562.5,305.1,13,428.504,0.4305,0.5902],[26,930.0,620.0,1,0.0,null,0.0],[28,860.0,674.1,1,0.0,null,0.0],[31,860.0,614.1,1,0.0,null,0.0],[32,695.3,535.1,6,203.803,0.3516,0.1582],[33,319.9,333.4,4,25.75,0.3299,0.17],[34,388.3,404.0,6,53.261,0.3529,0.2545],[36,453.5,551.9,5,19.04,0.3265,0.145],[38,34.5,448.0,1,0.0,0.2533,0.0144],[39,409.4,456.1,5,55.515,0.365,0.2288],[40,37.4,473.6,1,0.0,0.2533,0.0144],[41,202.8,266.6,3,0.0,0.3,0.1227],[42,310.6,432.9,24,1204.941,0.4848,0.9731],[43,259.1,520.7,2,0.0,0.3288,0.1223],[44,678.8,315.8,3,21.836,0.3368,0.1071],[45,396.4,496.5,7,29.618,0.3887,0.4214],[46,102.0,437.3,4,189.0,0.338,0.1371],[47,626.9,570.1,1,0.0,0.29,0.0307],[48,188.5,378.4,8,231.266,0.3542,0.3017],[49,833.7,570.6,2,0.0,0.2616,0.0178],[50,280.3,566.7,8,178.532,0.3721,0.3276],[51,58.6,366.3,2,95.0,0.2637,0.0321],[52,349.6,510.0,7,54.336,0.3871,0.4109],[53,530.9,536.8,7,111.302,0.381,0.4007],[54,659.7,558.0,4,58.44,0.3028,0.0659],[55,405.8,128.3,5,89.057,0.3556,0.1861],[57,348.6,206.4,11,214.512,0.4068,0.581],[58,371.2,593.9,5,49.245,0.3429,0.2033],[59,838.4,316.6,5,60.546,0.32,0.0822],[60,790.1,227.7,5,180.993,0.3453,0.1256],[61,254.6,257.0,5,25.943,0.3609,0.2842],[62,604.4,490.4,10,385.055,0.4068,0.2919],[63,880.0,351.4,2,0.0,0.2588,0.0159],[64,781.6,584.0,3,16.308,0.2759,0.0241],[65,702.4,328.7,3,0.911,0.3087,0.1685],[69,0.0,354.8,1,0.0,0.2092,0.0034],[70,570.0,84.9,2,4.997,0.2972,0.0622],[72,675.1,121.2,3,10.414,0.3211,0.1],[73,762.2,132.8,4,42.918,0.3211,0.0948],[74,957.7,76.8,2,95.0,0.2406,0.007],[75,441.9,110.2,5,40.444,0.331,0.1607],[77,899.6,102.2,1,0.0,0.2394,0.0069],[78,568.4,553.8,1,0.0,0.2674,0.0147],[79,726.1,394.1,4,67.498,0.3569,0.1517],[81,816.7,369.2,5,65.603,0.3232,0.0689],[82,728.8,594.8,1,0.0,0.2609,0.0166],[83,1000.0,50.0,1,0.0,0.1943,0.0007],[84,851.7,144.5,6,299.966,0.3137,0.0656],[87,838.6,247.4,7,135.844,0.3357,0.1138],[88,271.9,111.9,5,108.286,0.3019,0.0746],[89,816.0,515.1,2,0.0,0.2735,0.0235],[90,286.3,173.3,5,127.473,0.3322,0.1626],[91,229.9,59.5,1,0.0,0.2324,0.0078],[92,232.6,624.1,1,0.0,0.272,0.0344],[93,968.1,156.3,1,0.0,0.2197,0.0045],[94,799.2,419.8,5,79.487,0.3168,0.0648],[95,713.6,282.9,3,6.47,0.3265,0.1481],[96,678.7,359.0,9,31.873,0.3243,0.3868],[97,902.2,169.6,5,101.11,0.2807,0.0425],[98,590.0,543.4,1,0.0,0.2674,0.0147],[99,225.6,532.5,2,0.0,0.331,0.1368],[100,350.5,358.4,3,1.75,0.2909,0.0687],[101,666.0,159.7,2,4.947,0.3333,0.1132],[103,733.6,451.0,4,141.094,0.3429,0.1452],[104,560.0,225.9,13,185.376,0.4138,0.6671],[105,474.2,265.4,6,111.568,0.3429,0.2839],[106,658.9,462.6,6,78.198,0.3404,0.1956],[107,388.3,537.1,3,0.0,0.3516,0.221],[108,464.8,234.1,1,0.0,0.256,0.0299],[110,599.0,440.3,5,18.49,0.3288,0.2207],[111,481.3,563.7,1,0.0,0.2972,0.0744],[112,626.5,405.7,9,80.509,0.375,0.4516],[113,500.5,582.0,1,0.0,0.2972,0.0744],[115,447.1,416.2,1,0.0,0.2927,0.0664],[118,218.6,461.6,1,0.0,0.3276,0.1023],[119,554.1,428.2,4,12.987,0.3596,0.2823],[127,221.6,135.9,1,0.0,0.25,0.0171],[131,990.0,668.1,1,0.0,null,0.0],[135,642.9,0.0,1,0.0,0.2645,0.028],[139,701.9,257.3,1,0.0,0.3,0.0788],[144,478.3,605.6,2,8.304,0.2981,0.055]],"edges":[[1,8],[1,9],[1,18],[1,19],[1,20],[1,21],[1,23],[2,5],[2,7],[2,8],[2,9],[2,10],[2,15],[2,18],[2,19],[2,20],[2,21],[2,23],[2,65],[2,96],[2,101],[2,103],[2,105],[2,139],[3,8],[3,9],[3,18],[3,19],[3,20],[3,21],[3,65],[3,96],[3,112],[4,5],[4,8],[4,9],[4,12],[4,18],[4,19],[4,21],[4,23],[4,34],[4,39],[4,42],[4,57],[4,61],[5,6],[5,10],[5,12],[5,42],[5,45],[5,75],[5,104],[6,88],[7,10],[7,12],[7,13],[7,15],[7,57],[7,104],[8,104],[10,15],[10,21],[10,23],[10,42],[10,44],[10,55],[10,57],[10,62],[10,75],[12,15],[12,16],[12,44],[12,55],[12,62],[12,73],[12,84],[12,87],[12,101],[13,15],[13,21],[13,23],[13,72],[13,135],[14,18],[14,42],[14,43],[15,59],[15,60],[15,70],[15,73],[15,87],[15,95],[15,104],[15,112],[16,42],[16,78],[16,98],[18,32],[18,34],[18,42],[18,45],[18,53],[18,104],[18,107],[18,110],[18,111],[18,112],[18,113],[18,119],[19,20],[19,21],[19,34],[19,42],[19,53],[19,112],[19,115],[20,21],[20,96],[20,104],[20,110],[20,112],[21,22],[21,33],[21,42],[21,45],[21,50],[21,52],[21,53],[21,57],[21,61],[21,79],[21,90],[21,104],[21,119],[22,33],[22,42],[22,52],[22,88],[22,90],[23,42],[23,52],[23,60],[23,72],[23,95],[23,103],[23,104],[23,119],[26,131],[28,31],[32,53],[32,62],[32,82],[32,89],[32,94],[33,34],[33,100],[34,36],[34,100],[36,39],[36,53],[36,58],[36,62],[38,46],[39,42],[39,62],[39,100],[40,46],[41,48],[41,57],[41,61],[42,43],[42,45],[42,46],[42,48],[42,50],[42,52],[42,53],[42,57],[42,58],[42,62],[42,99],[42,107],[42,118],[44,54],[45,52],[45,58],[45,107],[46,48],[47,62],[48,50],[48,51],[48,52],[48,57],[48,61],[49,64],[49,103],[50,52],[50,58],[50,92],[50,99],[50,144],[51,69],[53,106],[54,58],[54,62],[54,64],[55,57],[55,75],[55,88],[57,61],[57,104],[57,105],[59,63],[59,79],[59,81],[59,87],[60,84],[60,94],[60,97],[62,79],[62,81],[63,81],[64,103],[65,96],[70,75],[72,73],[73,97],[74,83],[74,84],[75,90],[77,84],[79,81],[81,87],[84,87],[84,97],[87,94],[87,97],[88,90],[88,91],[89,94],[90,127],[93,97],[94,106],[95,96],[96,104],[96,110],[96,112],[96,119],[104,105],[104,106],[104,112],[105,108],[105,110],[105,112],[106,110],[106,112],[106,144]]}},"metrics":{"mission":{"nodes":146,"nodesA":89,"edges":270,"density":0.026,"densityA":0.069,"avgdeg":3.699,"avgdegA":6.067,"apl":2.281,"clust":0.258,"clustA":0.423,"mod":0.344,"comps":1,"lcc":89},"diffusion":{"nodes":146,"nodesA":101,"edges":258,"density":0.024,"densityA":0.051,"avgdeg":3.534,"avgdegA":5.109,"apl":3.118,"clust":0.143,"clustA":0.207,"mod":0.453,"comps":3,"lcc":97}},"geo":{"nodes":{"1":[836.0,529.6,"Florida","South",28.5735,-80.6511],"2":[348.9,299.2,"Colorado","West",38.8236,-104.695],"3":[860.5,265.2,"Virginia","South",38.8788,-77.1088],"4":[865.9,269.1,"District of Columbia","South",38.8831,-77.0305],"5":[859.3,266.8,"Maryland","South",39.0312,-77.1393],"6":[863.8,275.5,"District of Columbia","South",38.8646,-77.0504],"7":[857.1,275.5,"Virginia","South",38.8678,-77.2159],"8":[70.4,368.5,"California","West",33.9199,-118.3275],"9":[84.5,39.0,"Washington","West",47.4062,-122.2358],"10":[838.0,535.8,"Florida","South",28.1185,-80.6704],"11":[829.7,312.6,"Virginia","South",37.4157,-79.1426],"12":[815.6,179.1,"New York","Northeast",42.7668,-78.6171],"13":[913.2,204.4,"Connecticut","Northeast",41.0541,-73.5393],"14":[87.3,400.1,"California","West",32.9211,-117.1175],"15":[843.0,540.8,"Florida","South",28.0345,-80.5887],"16":[943.3,153.5,"Massachusetts","Northeast",42.6885,-71.2157],"17":[78.4,377.4,"California","West",33.7042,-117.8405],"18":[72.5,372.9,"California","West",33.7701,-118.1937],"19":[473.0,508.8,"Texas","South",30.5052,-97.8203],"20":[77.5,377.9,"California","West",33.8199,-118.1892],"21":[342.3,266.4,"Colorado","West",39.9721,-105.1306],"22":[529.7,527.5,"Texas","South",29.5612,-95.089],"23":[347.2,280.5,"Colorado","West",39.5791,-104.8777],"24":[72.5,382.9,"California","West",33.7701,-118.1937],"25":[695.5,392.8,"Alabama","South",34.7713,-86.5919],"26":[957.5,121.5,"Maine","Northeast",43.8922,-69.9361],"27":[533.4,533.9,"Texas","South",29.5946,-95.118],"28":[870.9,349.8,"North Carolina","South",35.603,-77.3983],"29":[17.9,263.1,"California","West",37.7822,-122.393],"30":[484.2,454.3,"Texas","South",32.7595,-97.3208],"31":[91.5,374.3,"California","West",34.1142,-117.2939],"32":[75.8,372.4,"California","West",33.9176,-118.3194],"33":[526.1,533.9,"Texas","South",29.5525,-95.098],"34":[85.0,27.9,"Washington","West",47.6346,-122.3407],"35":[67.6,377.9,"California","West",33.8196,-118.1469],"36":[854.0,270.9,"Virginia","South",38.9118,-77.4626],"37":[345.5,276.4,"Colorado","West",39.7392,-104.9903],"38":[78.6,372.4,"California","West",34.0706,-117.9466],"39":[91.0,406.5,"California","West",32.8106,-117.1377],"40":[838.0,545.8,"Florida","South",28.0953,-80.6319],"41":[879.8,224.4,"Pennsylvania","Northeast",40.5599,-75.5798],"42":[864.0,262.3,"Maryland","South",38.9574,-76.8396],"43":[347.7,295.6,"Colorado","West",38.9666,-104.78],"44":[873.9,182.0,"New York","Northeast",42.3141,-75.3916],"45":[881.2,237.0,"Pennsylvania","Northeast",40.0464,-75.6496],"46":[82.1,383.8,"California","West",33.6835,-117.8744],"47":[74.7,383.8,"California","West",33.7089,-117.8372],"48":[833.1,540.8,"Florida","South",28.1532,-80.6706],"49":[855.8,578.9,"Florida","South",26.228,-80.1597],"50":[837.6,533.7,"Florida","South",28.3925,-80.6071],"51":[894.8,232.2,"Pennsylvania","Northeast",40.1163,-74.8669],"52":[855.0,269.1,"Virginia","South",38.8011,-77.2081],"53":[73.9,367.1,"California","West",34.0522,-118.2437],"54":[937.7,151.1,"New Hampshire","Northeast",42.9301,-71.4773],"55":[192.3,407.4,"Arizona","West",33.4342,-112.0128],"56":[922.5,177.2,"Connecticut","Northeast",41.9009,-72.6727],"57":[494.6,450.3,"Texas","South",32.785,-96.7974],"58":[867.7,268.7,"Maryland","South",39.0626,-76.8909],"59":[192.0,414.5,"Arizona","West",33.2995,-111.9633],"60":[44.1,242.0,"California","West",38.9026,-121.353],"61":[810.9,492.6,"Florida","South",30.2456,-81.5552],"62":[57.8,363.7,"California","West",34.2177,-119.0679],"63":[73.8,378.8,"California","West",33.834,-118.3205],"64":[946.9,167.5,"Massachusetts","Northeast",42.1848,-71.2089],"65":[67.1,378.8,"California","West",33.9192,-118.3856],"66":[912.6,212.6,"New York","Northeast",40.7358,-73.6766],"67":[90.0,32.9,"Washington","West",47.6636,-122.3768],"68":[907.2,212.7,"New York","Northeast",40.7798,-73.9671],"69":[559.4,164.1,"Minnesota","Midwest",44.6474,-93.1697],"70":[892.6,237.2,"New Jersey","Northeast",39.9343,-75.0456],"71":[917.0,211.5,"New York","Northeast",40.7352,-73.4268],"72":[39.5,265.9,"California","West",37.9116,-121.2552],"73":[520.0,530.4,"Texas","South",29.6266,-95.5634],"74":[855.8,586.0,"Florida","South",26.3126,-80.1258],"75":[806.3,370.9,"North Carolina","South",35.222,-80.8454],"76":[804.8,364.2,"North Carolina","South",35.5033,-80.8632],"77":[78.5,376.2,"California","West",33.9186,-117.9105],"78":[699.2,399.2,"Alabama","South",34.7304,-86.5861],"79":[539.1,348.5,"Missouri","Midwest",37.097,-94.523],"80":[73.9,374.1,"California","West",34.1452,-118.1557],"81":[926.2,183.6,"Connecticut","Northeast",41.8687,-72.806],"82":[513.7,373.4,"Oklahoma","South",36.0862,-95.8513],"83":[634.3,220.1,"Illinois","Midwest",42.187,-89.0527],"84":[196.0,413.8,"Arizona","West",33.3947,-111.9716],"85":[918.8,183.6,"Connecticut","Northeast",41.8594,-72.709],"86":[85.0,37.9,"Washington","West",47.6762,-122.2087],"87":[899.9,210.3,"New Jersey","Northeast",40.9445,-74.3251],"88":[521.2,525.4,"Texas","South",29.8339,-95.5069],"89":[88.8,397.9,"California","West",33.1434,-117.1661],"90":[207.9,439.8,"Arizona","West",32.2217,-110.9265],"91":[77.7,235.0,"Nevada","West",39.5339,-119.7007],"92":[943.3,160.6,"Massachusetts","Northeast",42.5852,-71.2872],"93":[691.9,399.2,"Alabama","South",34.7266,-86.6502],"94":[947.2,157.9,"Massachusetts","Northeast",42.4771,-71.1192],"95":[943.2,142.4,"New Hampshire","Northeast",43.2179,-71.0415],"96":[345.3,262.4,"Colorado","West",40.3092,-105.0769],"97":[901.8,215.9,"New Jersey","Northeast",40.7031,-74.2933],"98":[806.5,317.7,"Virginia","South",37.2296,-80.4139],"99":[764.9,225.3,"Ohio","Midwest",41.3781,-81.8292],"100":[494.6,457.4,"Texas","South",32.7792,-96.8089],"101":[815.6,186.2,"New York","Northeast",42.7581,-78.6376],"102":[82.5,372.6,"California","West",34.0979,-117.7534],"103":[67.0,365.0,"California","West",34.2573,-118.601],"104":[804.4,377.4,"South Carolina","South",34.9691,-80.9901],"105":[799.0,247.2,"Pennsylvania","Northeast",40.2737,-80.1647],"106":[741.9,412.0,"Georgia","South",33.786,-84.3827],"107":[947.2,165.0,"Massachusetts","Northeast",42.36,-71.092],"108":[75.6,370.0,"California","West",34.138,-118.125],"109":[19.7,272.6,"California","West",37.4282,-122.1689],"110":[741.9,419.0,"Georgia","South",33.7722,-84.3902],"111":[728.1,208.3,"Michigan","Midwest",42.278,-83.7382],"112":[676.1,259.7,"Indiana","Midwest",40.424,-86.929],"113":[653.1,269.4,"Illinois","Midwest",40.1106,-88.2283],"114":[474.7,514.2,"Texas","South",30.2849,-97.7341],"115":[503.8,506.5,"Texas","South",30.615,-96.3425],"116":[21.0,261.7,"California","West",37.8719,-122.2584],"117":[69.0,370.1,"California","West",34.0709,-118.4468],"118":[860.3,268.7,"Maryland","South",38.9906,-76.9373],"119":[342.3,273.5,"Colorado","West",40.0076,-105.2691],"120":[897.4,225.9,"New Jersey","Northeast",40.344,-74.6514],"121":[867.3,257.8,"Maryland","South",39.3302,-76.6219],"122":[65.0,372.4,"California","West",34.0224,-118.2855],"123":[80.0,32.9,"Washington","West",47.6555,-122.3032],"124":[854.4,182.7,"New York","Northeast",42.4543,-76.4753],"125":[748.1,261.3,"Ohio","Midwest",40.0142,-83.0309],"126":[838.0,227.1,"Pennsylvania","Northeast",40.7982,-77.8599],"127":[796.4,509.5,"Florida","South",29.6439,-82.3557],"128":[558.1,156.3,"Minnesota","Midwest",44.9718,-93.2338],"129":[845.7,350.1,"North Carolina","South",35.7855,-78.6716],"130":[806.5,324.8,"Virginia","South",37.225,-80.425],"131":[825.3,516.2,"Florida","South",29.1886,-81.0487],"132":[685.4,227.5,"Indiana","Midwest",41.6993,-86.2389],"133":[207.9,446.8,"Arizona","West",32.2488,-110.9874],"134":[811.8,177.5,"New York","Northeast",43.0008,-78.7887],"135":[33.8,248.5,"California","West",38.5338,-121.7908],"136":[83.6,406.5,"California","West",32.8795,-117.2359],"137":[723.2,446.8,"Alabama","South",32.5934,-85.4952],"138":[947.6,163.1,"Massachusetts","Northeast",42.3505,-71.1054],"139":[729.5,269.5,"Ohio","Midwest",39.7817,-84.0873],"140":[188.7,413.8,"Arizona","West",33.4193,-111.9257],"141":[857.2,272.2,"Virginia","South",38.8308,-77.3075],"142":[524.3,527.0,"Texas","South",29.7661,-95.3588],"143":[744.4,361.9,"Tennessee","South",35.951,-83.9247],"144":[824.3,530.7,"Florida","South",28.6016,-81.2005],"145":[524.7,303.4,"Kansas","Midwest",38.9522,-95.256],"146":[486.5,333.4,"Kansas","Midwest",37.7182,-97.2892]},"states":[["Alabama","M680.3,392.2L714.6,389.1L720.3,409.6L728.7,439.6L731.7,446.1L734.4,449.7L733.8,452.2L736.3,453.3L733.2,456.8L733.7,459.8L732.4,464.1L735.2,471.1L734.5,477.6L737.5,484.0L727.4,485.3L684.2,489.6L683.8,492.8L688.8,497.0L688.4,501.1L690.1,502.9L687.4,506.7L684.6,507.8L679.0,504.3L678.0,498.4L676.3,497.8L674.8,502.5L674.5,506.9L669.0,506.2L664.5,469.4L665.4,422.9L666.0,396.1L663.8,393.7L680.3,392.2Z"],["Arizona","M262.3,334.0L243.3,470.7L202.1,464.6L179.8,451.7L131.9,423.3L134.8,418.3L138.9,418.2L140.4,416.3L140.2,411.6L137.5,411.0L138.0,401.8L142.6,399.2L143.9,395.8L144.2,390.0L147.4,386.3L150.8,385.3L153.7,382.6L150.6,378.5L149.2,371.7L146.8,367.1L147.4,364.1L149.2,361.1L149.6,356.5L149.0,351.6L150.6,337.4L157.8,337.8L159.5,341.2L161.4,341.4L164.1,337.7L167.9,318.4L234.7,329.9L262.3,334.0Z"],["Arkansas","M540.2,363.0L623.4,359.9L625.3,364.5L622.6,367.6L619.8,372.3L632.3,371.6L631.9,376.1L629.1,377.6L628.7,381.4L625.4,385.6L626.0,391.5L624.4,395.9L622.5,396.7L623.8,398.7L620.8,400.8L619.6,405.0L617.6,406.2L618.2,410.9L614.7,412.5L614.9,414.1L611.0,418.3L612.4,420.9L609.0,424.9L606.2,432.6L609.9,435.6L608.2,437.7L609.6,442.7L608.2,446.1L559.0,447.5L550.3,447.7L550.0,434.8L547.2,433.8L543.3,435.1L541.1,432.9L541.5,390.0L537.5,363.1L540.2,363.0Z"],["California","M31.8,159.9L46.5,164.0L69.4,170.8L87.3,175.5L76.8,216.4L69.0,246.2L87.1,273.3L104.5,299.6L118.6,320.7L128.9,336.2L147.4,364.1L146.8,367.1L149.2,371.7L150.6,378.5L153.7,382.6L150.8,385.3L147.4,386.3L144.2,390.0L143.9,395.8L142.6,399.2L138.0,401.8L137.5,411.0L140.2,411.6L140.4,416.3L138.9,418.2L134.8,418.3L108.1,415.1L86.3,412.5L84.6,408.8L85.6,403.9L85.4,397.7L83.6,392.9L78.8,385.8L72.3,378.6L70.5,379.7L67.7,378.1L68.7,375.8L66.5,370.2L61.7,370.1L54.5,364.7L54.1,361.5L49.6,356.7L43.4,355.3L38.8,352.4L32.3,351.4L29.7,347.4L32.2,341.0L31.3,339.7L33.3,335.2L29.2,330.4L30.3,325.6L28.5,324.8L26.6,319.9L24.6,318.4L24.4,315.6L19.9,303.9L17.3,300.2L18.7,292.4L20.0,293.4L22.6,289.3L21.1,284.4L17.7,284.0L14.5,279.1L13.9,275.7L15.0,273.0L13.9,268.6L15.7,262.5L19.1,263.4L20.2,254.4L18.4,254.9L16.9,259.0L13.1,258.9L9.7,254.5L10.6,248.7L9.2,243.6L6.3,239.8L5.3,236.2L1.8,228.6L3.2,227.0L3.1,218.5L5.5,214.5L5.9,207.5L3.3,199.7L0.0,194.8L0.4,190.3L7.9,181.4L9.9,178.2L9.8,175.3L13.6,168.8L14.1,162.0L12.7,159.9L15.0,155.0L31.8,159.9Z"],["Colorado","M295.8,239.9L335.1,244.5L365.3,247.2L401.4,249.9L399.9,274.3L395.4,347.6L377.1,346.2L351.6,344.2L303.5,339.4L293.0,338.0L262.3,334.0L266.2,305.8L266.2,303.1L269.2,282.6L275.5,237.4L295.8,239.9Z"],["Connecticut","M916.0,179.1L937.7,174.0L937.8,174.3L941.5,188.3L941.0,190.7L939.4,190.8L932.2,194.5L922.9,196.3L919.8,200.5L915.8,202.6L911.5,206.5L909.6,204.1L913.3,200.4L911.6,198.8L908.4,180.6L916.0,179.1Z"],["Delaware","M886.7,241.8L885.6,245.0L884.1,247.0L885.3,250.7L888.8,253.7L890.8,259.4L896.0,264.6L897.9,264.5L900.5,272.5L888.6,274.9L880.4,245.2L882.9,241.9L886.7,241.8Z"],["District of Columbia","M861.4,267.3L864.2,269.2L862.3,272.2L860.2,269.1L861.4,267.3Z"],["Florida","M727.4,485.3L737.5,484.0L741.1,490.6L769.5,488.7L796.1,486.9L797.9,491.8L800.3,491.3L800.5,486.4L799.1,482.0L800.7,479.9L805.7,481.2L811.4,481.2L814.3,491.4L818.7,502.6L827.2,517.0L839.1,531.8L837.9,533.2L839.6,540.7L844.9,548.5L854.0,564.5L856.1,569.6L856.9,575.0L857.9,595.0L855.9,595.7L854.8,602.1L855.8,603.9L852.4,609.0L850.5,608.3L846.8,610.7L840.0,612.9L837.6,610.7L838.0,607.0L831.4,597.2L827.3,595.9L824.2,597.8L820.7,592.4L819.3,587.7L814.0,583.0L812.4,579.7L812.4,574.5L809.8,574.0L810.8,576.9L808.7,578.0L800.0,566.1L796.9,563.2L801.9,552.7L797.8,553.9L795.4,557.3L792.0,552.9L793.9,539.4L793.0,528.4L790.1,526.1L788.8,522.7L784.7,522.5L779.2,517.4L775.1,515.5L774.4,512.0L771.6,511.0L769.0,507.4L760.3,503.1L753.5,505.2L754.3,508.8L752.0,508.4L743.9,514.0L734.7,516.1L734.7,513.4L732.1,510.5L720.6,504.6L712.5,502.3L705.5,502.2L699.8,503.3L687.4,506.7L690.1,502.9L688.4,501.1L688.8,497.0L683.8,492.8L684.2,489.6L727.4,485.3Z"],["Georgia","M763.2,382.7L759.7,388.5L759.7,391.0L767.0,395.3L768.9,394.6L772.7,399.5L773.7,402.2L777.6,406.7L782.5,409.1L785.8,413.2L791.7,416.5L791.9,419.3L796.0,423.3L801.9,426.2L803.9,429.9L804.9,435.0L807.9,436.3L812.1,442.2L812.8,446.3L817.8,447.7L814.1,456.6L813.9,460.9L812.4,464.9L812.7,468.8L810.8,470.8L811.4,481.2L805.7,481.2L800.7,479.9L799.1,482.0L800.5,486.4L800.3,491.3L797.9,491.8L796.1,486.9L769.5,488.7L741.1,490.6L737.5,484.0L734.5,477.6L735.2,471.1L732.4,464.1L733.7,459.8L733.2,456.8L736.3,453.3L733.8,452.2L734.4,449.7L731.7,446.1L728.7,439.6L720.3,409.6L714.6,389.1L739.6,386.1L753.3,384.5L763.2,382.7Z"],["Idaho","M191.3,26.3L186.2,50.2L190.0,57.9L188.7,64.3L191.2,67.8L194.3,69.5L194.3,71.3L199.0,78.8L199.2,81.5L203.0,84.9L202.9,86.4L207.7,87.3L203.6,95.6L202.0,101.1L203.0,105.1L199.5,107.1L200.2,109.8L198.9,112.2L202.0,115.4L206.7,112.9L208.8,110.6L211.4,113.5L210.6,115.4L211.3,120.3L213.2,125.6L214.9,127.7L214.0,132.2L215.5,134.5L219.0,135.4L219.8,143.5L221.5,145.2L223.7,143.3L228.9,144.4L233.2,142.9L235.3,144.5L239.5,144.2L240.1,145.6L243.7,145.3L248.4,140.9L250.4,145.6L253.1,148.5L243.6,207.9L223.9,204.8L191.0,198.8L138.9,187.8L148.6,144.4L152.6,137.1L151.6,134.9L148.5,133.8L148.0,130.3L153.3,122.6L155.2,122.2L157.8,119.1L158.0,116.9L160.5,114.4L162.4,110.5L167.4,104.3L166.8,100.8L163.3,98.2L161.9,93.7L162.7,89.6L161.5,85.0L162.2,83.1L169.2,51.7L175.9,22.9L191.3,26.3Z"],["Illinois","M605.7,214.1L638.5,212.3L655.9,210.9L655.7,215.6L658.9,220.8L662.5,229.4L667.5,286.8L665.9,291.3L668.7,296.3L669.4,300.6L667.3,304.2L667.0,307.5L664.1,313.0L661.9,313.5L662.7,316.6L661.4,317.9L660.7,323.7L661.5,325.3L659.3,328.9L661.4,333.0L653.8,335.9L653.3,338.5L655.3,341.6L653.1,343.8L645.8,340.6L643.6,341.0L641.0,345.5L642.1,346.8L639.0,346.7L634.3,340.1L635.7,338.4L633.8,333.8L633.6,330.1L627.1,325.3L625.1,325.9L622.8,322.9L617.0,318.3L616.8,314.4L619.6,307.9L619.0,305.7L620.6,302.6L617.9,301.1L613.7,300.2L611.7,302.6L610.2,301.3L608.6,293.3L602.1,288.4L596.1,282.5L593.5,275.1L593.0,270.2L594.5,266.6L594.6,262.2L599.5,259.3L599.8,255.5L602.1,253.0L602.1,248.7L599.0,245.4L599.9,241.1L606.9,239.5L612.3,236.1L612.6,232.3L614.9,230.6L615.3,225.9L614.6,222.9L610.5,220.7L609.8,218.2L605.7,214.1Z"],["Indiana","M689.7,225.6L710.7,223.2L710.9,224.8L714.4,253.7L718.1,287.6L716.9,288.8L719.2,295.2L715.9,295.8L712.7,298.4L707.8,297.9L708.6,302.7L705.6,305.0L704.7,308.2L701.6,309.7L700.5,316.0L698.5,317.9L694.1,316.0L693.1,313.3L689.3,316.8L689.8,319.4L685.7,320.8L684.2,318.5L679.7,321.3L678.4,324.0L673.4,320.9L671.0,321.9L669.2,320.3L667.8,322.2L663.0,322.8L661.5,325.3L660.7,323.7L661.4,317.9L662.7,316.6L661.9,313.5L664.1,313.0L667.0,307.5L667.3,304.2L669.4,300.6L668.7,296.3L665.9,291.3L667.5,286.8L662.5,229.4L664.4,230.9L669.9,230.4L674.9,227.1L689.7,225.6Z"],["Iowa","M591.7,190.7L594.3,190.5L594.7,194.1L597.4,196.4L595.5,199.4L596.3,204.8L597.9,208.6L604.3,211.1L605.7,214.1L609.8,218.2L610.5,220.7L614.6,222.9L615.3,225.9L614.9,230.6L612.6,232.3L612.3,236.1L606.9,239.5L599.9,241.1L599.0,245.4L602.1,248.7L602.1,253.0L599.8,255.5L599.5,259.3L594.6,262.2L594.5,266.6L592.4,265.9L588.5,261.1L586.6,261.4L560.8,263.0L535.8,263.8L515.1,263.6L513.0,260.3L514.0,254.1L512.2,248.6L512.3,242.5L509.2,240.3L508.7,237.0L509.8,234.1L508.6,229.8L506.1,228.2L503.0,217.2L499.7,211.9L501.3,208.3L501.9,203.5L503.2,201.8L501.0,199.4L501.6,195.1L500.7,193.1L503.0,192.6L591.7,190.7Z"],["Kansas","M402.6,274.5L523.6,277.8L525.4,280.1L531.4,281.9L527.3,289.0L529.7,291.4L532.7,297.1L536.7,298.2L537.3,350.9L432.7,349.4L395.4,347.6L399.9,274.3L402.6,274.5Z"],["Kentucky","M736.0,293.6L740.6,296.3L743.3,294.2L750.6,295.2L752.3,292.5L754.8,291.3L756.2,295.3L758.4,295.7L761.4,298.6L762.0,306.0L764.9,310.3L768.4,313.4L769.7,316.1L773.7,318.3L776.2,318.4L769.9,325.9L763.5,330.5L763.8,332.3L761.2,334.3L761.3,336.5L757.8,337.9L756.9,340.7L747.1,345.5L746.9,346.0L730.6,347.7L716.2,348.6L712.5,349.3L691.3,350.6L667.2,353.3L662.9,352.6L663.6,357.0L639.7,358.6L637.4,359.0L638.3,355.9L641.2,356.7L642.1,346.8L641.0,345.5L643.6,341.0L645.8,340.6L653.1,343.8L655.3,341.6L653.3,338.5L653.8,335.9L661.4,333.0L659.3,328.9L661.5,325.3L663.0,322.8L667.8,322.2L669.2,320.3L671.0,321.9L673.4,320.9L678.4,324.0L679.7,321.3L684.2,318.5L685.7,320.8L689.8,319.4L689.3,316.8L693.1,313.3L694.1,316.0L698.5,317.9L700.5,316.0L701.6,309.7L704.7,308.2L705.6,305.0L708.6,302.7L707.8,297.9L712.7,298.4L715.9,295.8L719.2,295.2L716.9,288.8L718.1,287.6L725.2,286.7L729.6,291.3L730.1,293.4L736.0,293.6Z"],["Louisiana","M559.0,447.5L608.2,446.1L610.2,448.8L608.8,449.9L608.9,454.8L612.0,457.7L612.8,464.9L610.7,470.6L606.1,474.3L605.1,479.8L603.0,479.4L603.1,488.3L600.7,488.7L602.4,493.4L601.0,495.2L639.9,493.0L638.4,501.1L642.2,506.1L643.2,510.1L645.9,512.4L640.0,516.1L639.7,518.5L644.8,519.8L646.7,515.8L651.3,519.3L651.2,522.4L648.8,523.9L644.0,523.0L644.7,525.2L643.3,528.8L647.6,531.5L654.1,532.0L656.6,535.4L658.5,535.8L655.5,540.1L651.7,539.6L648.3,535.6L640.4,533.9L640.2,529.8L636.5,531.3L636.9,534.8L635.4,538.0L632.6,538.7L630.3,535.3L625.5,535.5L624.0,539.3L620.8,540.5L617.2,538.4L614.4,538.3L611.5,532.5L606.6,530.1L604.8,530.6L602.7,525.6L597.2,526.5L597.0,523.5L591.7,526.6L592.5,528.9L588.4,531.1L582.0,530.3L574.4,527.3L569.0,526.0L557.7,527.5L556.2,528.4L554.3,526.1L559.1,517.4L557.4,512.8L558.8,510.2L558.0,506.9L560.0,504.3L562.0,498.0L561.5,492.9L555.7,483.2L555.4,477.9L550.8,472.6L550.3,447.7L559.0,447.5Z"],["Maine","M950.0,144.6L947.5,143.5L947.1,141.1L943.7,139.2L934.3,108.7L929.5,93.8L935.7,88.7L934.1,87.3L935.8,83.0L938.1,80.6L937.2,79.3L939.1,76.4L937.2,72.6L937.1,66.0L939.0,63.3L938.2,56.6L945.4,35.3L948.5,35.3L949.9,39.5L952.4,40.4L956.8,36.4L960.0,35.4L961.7,33.1L967.3,35.4L970.8,37.7L978.9,63.5L980.4,69.8L986.5,69.7L986.5,72.6L988.7,74.7L988.3,77.3L991.7,80.2L994.5,78.5L1000.0,85.8L997.7,90.5L995.3,89.7L994.5,92.8L992.0,92.8L992.4,95.1L989.2,95.8L985.9,102.2L983.7,99.1L981.9,99.4L983.8,102.8L980.5,105.8L978.8,103.1L977.4,105.2L973.1,106.4L972.0,103.0L969.7,104.5L970.9,106.8L970.0,112.6L970.9,113.9L968.6,117.6L965.2,117.4L964.2,120.9L961.8,122.0L960.3,125.0L957.6,125.3L956.2,122.9L953.6,128.1L955.3,130.3L952.8,132.0L953.2,134.2L950.8,137.8L950.0,144.6Z"],["Maryland","M885.7,288.2L885.3,288.3L884.8,288.4L885.7,288.2ZM813.7,258.3L880.4,245.2L888.6,274.9L900.5,272.5L899.1,283.4L896.4,284.4L891.6,287.0L887.9,288.9L887.2,284.9L885.3,283.7L887.1,281.5L883.4,278.2L882.9,280.1L879.0,280.5L876.8,276.5L878.0,276.2L876.9,270.6L877.6,268.1L874.4,260.8L875.5,256.0L878.4,254.5L877.9,249.9L875.7,250.9L876.1,253.2L872.0,257.3L871.2,260.3L872.3,267.3L871.2,270.9L873.2,276.3L876.4,279.6L876.7,282.5L878.8,285.1L878.4,287.2L873.4,284.3L866.9,283.7L864.4,280.4L861.4,283.2L859.5,280.6L861.5,276.3L862.3,272.2L864.2,269.2L861.4,267.3L860.2,269.1L857.4,267.3L853.3,266.9L852.6,263.4L850.3,261.8L847.4,262.0L844.0,255.7L840.9,256.3L837.4,254.6L836.1,256.8L833.1,257.2L832.9,260.0L827.2,259.2L824.3,263.4L821.7,263.1L818.9,267.8L815.7,270.7L813.7,258.3Z"],["Massachusetts","M947.4,149.6L949.2,149.5L951.0,153.5L951.1,157.0L949.3,160.8L950.1,164.5L954.0,164.0L957.3,167.1L957.7,170.1L959.8,170.4L960.8,173.0L966.2,174.0L971.2,170.3L970.9,173.8L963.4,179.0L960.4,179.9L958.0,178.2L955.3,179.6L955.7,181.3L952.8,183.2L950.3,179.3L949.6,178.7L947.4,177.5L944.9,172.2L942.4,172.9L937.8,174.3L937.7,174.0L916.0,179.1L908.4,180.6L907.8,179.8L908.2,163.3L922.2,160.2L942.2,155.8L943.5,153.1L947.4,149.6Z"],["Michigan","M734.8,220.9L710.9,224.8L710.7,223.2L689.7,225.6L674.9,227.1L678.2,223.5L680.0,217.8L681.9,214.3L683.1,209.5L683.4,202.8L682.3,195.7L675.7,182.2L676.8,176.7L675.0,170.5L678.3,163.6L678.6,158.1L677.7,155.2L680.4,153.8L680.4,149.8L684.6,148.2L687.5,143.5L688.2,152.3L690.0,152.5L691.7,147.9L691.0,140.5L692.2,138.5L696.7,136.8L694.6,131.8L697.1,127.1L700.9,126.4L705.4,128.7L709.6,128.5L712.1,131.7L715.2,131.6L720.9,134.0L722.7,133.7L726.3,138.4L724.3,141.5L727.0,144.7L728.4,148.7L728.6,157.8L725.4,160.5L725.2,165.2L721.2,167.3L719.7,173.1L720.8,175.1L725.2,176.6L728.0,173.1L731.0,166.4L736.6,163.3L739.7,164.7L742.0,167.9L745.2,177.6L746.2,182.6L749.0,188.4L748.4,197.3L745.7,199.0L745.2,195.9L743.4,197.1L742.2,204.7L739.0,207.9L738.7,213.6L734.9,218.8L734.8,220.9ZM687.7,128.9L688.2,131.7L686.1,132.5L686.6,128.3L687.7,128.9ZM654.0,147.7L651.2,145.4L652.5,141.8L648.5,141.6L649.8,138.2L649.6,134.0L645.8,131.4L643.6,128.5L636.3,126.7L634.1,127.7L626.7,124.6L609.2,120.9L607.1,116.9L603.9,115.7L610.2,112.8L613.0,109.7L620.1,108.0L624.6,104.1L626.8,103.9L628.4,101.2L633.2,97.3L635.6,94.1L639.3,91.8L643.1,93.2L637.3,101.1L635.9,103.7L636.4,108.1L639.3,104.5L645.0,104.5L649.7,106.5L654.2,112.7L656.5,113.7L660.6,112.3L661.8,113.6L666.0,114.0L674.4,107.6L678.9,106.6L685.1,106.1L689.1,103.8L692.2,103.4L693.7,110.0L697.0,110.5L700.2,109.1L701.7,110.5L703.7,108.2L708.4,107.0L709.5,115.4L712.2,118.6L715.6,119.1L715.6,116.7L718.8,116.3L720.9,118.6L719.7,120.6L710.3,120.2L706.1,121.8L701.0,119.5L699.9,122.3L700.8,124.4L698.6,124.1L695.1,121.2L689.5,119.9L686.8,120.1L684.5,123.5L680.1,124.8L675.3,124.6L673.5,126.1L673.3,128.8L668.3,131.6L668.3,128.4L665.9,127.9L665.3,131.3L661.5,131.8L659.8,133.4L657.8,139.3L653.6,147.0L654.0,147.7ZM628.1,80.1L624.3,83.5L622.1,84.0L622.1,81.5L632.0,75.1L630.3,79.2L628.1,80.1Z"],["Minnesota","M577.1,113.7L575.8,112.7L572.5,114.8L573.1,129.1L572.1,130.6L567.4,132.7L563.7,138.0L563.6,141.5L565.5,141.7L567.8,144.6L565.9,148.4L566.4,152.5L565.5,161.4L570.2,165.6L573.8,165.9L575.7,168.5L581.1,170.9L582.0,174.1L587.2,178.0L589.9,178.8L593.5,183.9L593.2,187.8L594.3,190.5L591.7,190.7L503.0,192.6L503.2,149.1L499.3,146.3L496.4,141.6L501.0,136.5L501.4,133.7L500.8,124.1L498.8,121.5L497.5,116.2L497.8,109.8L497.2,108.7L496.8,93.3L493.7,85.1L492.5,80.5L492.1,70.8L493.2,67.6L491.1,60.0L524.5,60.0L524.4,50.9L527.5,51.1L529.7,52.9L531.9,65.3L533.6,66.7L538.9,67.0L539.6,68.2L545.8,68.6L546.5,71.2L551.8,70.4L551.8,69.3L555.9,67.9L559.6,68.3L563.8,70.2L565.0,72.6L567.4,72.3L569.8,77.6L570.8,75.3L574.9,74.1L575.7,76.3L580.5,77.6L580.6,79.7L583.1,81.3L588.0,80.2L590.8,77.7L594.7,76.0L596.3,79.5L599.0,78.5L602.4,79.1L606.2,78.4L610.7,81.1L614.9,80.3L614.6,81.6L609.4,85.0L601.9,87.8L597.1,90.6L590.4,97.2L587.5,101.1L583.0,105.7L575.8,111.8L577.1,113.7Z"],["Mississippi","M658.5,394.1L663.8,393.7L666.0,396.1L665.4,422.9L664.5,469.4L669.0,506.2L666.8,507.4L661.8,507.3L659.6,505.8L654.7,507.3L648.0,510.5L645.9,512.4L643.2,510.1L642.2,506.1L638.4,501.1L639.9,493.0L601.0,495.2L602.4,493.4L600.7,488.7L603.1,488.3L603.0,479.4L605.1,479.8L606.1,474.3L610.7,470.6L612.8,464.9L612.0,457.7L608.9,454.8L608.8,449.9L610.2,448.8L608.2,446.1L609.6,442.7L608.2,437.7L609.9,435.6L606.2,432.6L609.0,424.9L612.4,420.9L611.0,418.3L614.9,414.1L614.7,412.5L618.2,410.9L617.6,406.2L619.6,405.0L620.8,400.8L623.8,398.7L622.5,396.7L658.5,394.1Z"],["Missouri","M586.6,261.4L588.5,261.1L592.4,265.9L594.5,266.6L593.0,270.2L593.5,275.1L596.1,282.5L602.1,288.4L608.6,293.3L610.2,301.3L611.7,302.6L613.7,300.2L617.9,301.1L620.6,302.6L619.0,305.7L619.6,307.9L616.8,314.4L617.0,318.3L622.8,322.9L625.1,325.9L627.1,325.3L633.6,330.1L633.8,333.8L635.7,338.4L634.3,340.1L639.0,346.7L642.1,346.8L641.2,356.7L638.3,355.9L637.4,359.0L636.2,359.1L635.1,359.2L635.6,365.2L632.3,371.6L619.8,372.3L622.6,367.6L625.3,364.5L623.4,359.9L540.2,363.0L537.5,363.1L537.3,350.9L536.7,298.2L532.7,297.1L529.7,291.4L527.3,289.0L531.4,281.9L525.4,280.1L523.6,277.8L519.0,271.4L515.1,263.6L535.8,263.8L560.8,263.0L586.6,261.4Z"],["Montana","M381.8,54.6L379.6,81.8L375.6,127.7L373.7,150.6L373.5,150.6L341.9,147.4L288.3,140.9L255.0,135.9L253.1,148.5L250.4,145.6L248.4,140.9L243.7,145.3L240.1,145.6L239.5,144.2L235.3,144.5L233.2,142.9L228.9,144.4L223.7,143.3L221.5,145.2L219.8,143.5L219.0,135.4L215.5,134.5L214.0,132.2L214.9,127.7L213.2,125.6L211.3,120.3L210.6,115.4L211.4,113.5L208.8,110.6L206.7,112.9L202.0,115.4L198.9,112.2L200.2,109.8L199.5,107.1L203.0,105.1L202.0,101.1L203.6,95.6L207.7,87.3L202.9,86.4L203.0,84.9L199.2,81.5L199.0,78.8L194.3,71.3L194.3,69.5L191.2,67.8L188.7,64.3L190.0,57.9L186.2,50.2L191.3,26.3L263.0,40.0L295.6,44.8L381.8,54.6Z"],["Nebraska","M382.2,199.8L412.0,201.9L466.9,204.3L467.5,205.5L476.4,210.1L478.6,207.8L481.1,208.3L489.4,208.5L498.6,213.1L499.8,216.6L503.0,217.2L506.1,228.2L508.6,229.8L509.8,234.1L508.7,237.0L509.2,240.3L512.3,242.5L512.2,248.6L514.0,254.1L513.0,260.3L515.1,263.6L519.0,271.4L523.6,277.8L402.6,274.5L399.9,274.3L401.4,249.9L365.3,247.2L369.5,198.8L382.2,199.8Z"],["Nevada","M138.9,187.8L191.0,198.8L167.9,318.4L164.1,337.7L161.4,341.4L159.5,341.2L157.8,337.8L150.6,337.4L149.0,351.6L149.6,356.5L149.2,361.1L147.4,364.1L128.9,336.2L118.6,320.7L104.5,299.6L87.1,273.3L69.0,246.2L76.8,216.4L87.3,175.5L109.8,181.3L138.9,187.8Z"],["New Hampshire","M929.5,93.8L934.3,108.7L943.7,139.2L947.1,141.1L947.5,143.5L950.0,144.6L949.2,149.5L947.4,149.6L943.5,153.1L942.2,155.8L922.2,160.2L920.2,158.8L919.5,155.2L920.7,153.6L919.7,150.3L918.4,140.0L920.2,134.6L920.3,129.0L921.3,126.6L919.7,120.9L924.7,117.2L926.4,112.6L923.9,109.1L925.1,104.7L924.3,102.4L925.1,95.8L929.0,95.4L929.5,93.8Z"],["New Jersey","M900.4,205.3L907.1,207.3L906.6,214.7L904.0,216.9L903.3,220.9L908.6,221.6L909.7,224.2L910.5,237.5L907.1,248.3L904.1,251.9L902.2,258.6L899.6,255.1L893.9,254.3L886.3,250.5L885.1,247.1L884.9,246.6L885.6,245.0L886.7,241.8L891.1,238.8L891.0,236.9L895.6,231.7L896.0,229.5L889.8,225.8L888.9,222.8L886.5,222.5L885.7,219.8L887.5,215.1L885.5,212.9L888.8,207.0L889.2,204.2L891.1,201.9L900.4,205.3Z"],["New Mexico","M293.0,338.0L303.5,339.4L351.6,344.2L377.1,346.2L376.2,358.3L375.5,358.2L370.9,418.7L368.6,443.3L366.8,467.6L294.7,460.8L293.9,463.2L295.9,466.2L261.8,462.1L260.4,473.0L243.3,470.7L262.3,334.0L293.0,338.0Z"],["New York","M893.9,110.1L895.3,115.0L895.4,119.6L898.0,123.4L898.6,128.1L897.9,133.3L900.9,139.4L900.4,141.6L904.1,144.8L907.5,161.2L908.2,163.3L907.8,179.8L908.4,180.6L911.6,198.8L913.3,200.4L909.6,204.1L911.5,206.5L919.5,206.6L920.7,204.8L927.1,203.2L930.2,201.6L934.6,196.5L935.7,199.1L938.8,199.6L933.2,204.7L920.9,213.3L915.4,215.7L911.6,216.4L909.1,218.2L906.6,214.7L907.1,207.3L900.4,205.3L891.1,201.9L890.0,200.4L887.3,200.9L883.2,197.6L882.8,194.0L880.1,191.7L878.8,192.1L876.1,189.3L799.1,204.4L798.0,198.4L798.0,198.0L807.5,189.3L808.6,185.7L811.6,182.9L809.5,179.0L808.0,178.5L805.8,172.2L815.3,167.6L824.3,166.0L828.0,166.0L832.4,167.8L834.6,166.3L842.1,164.9L846.2,162.3L850.1,157.0L853.2,156.2L851.9,149.7L852.7,145.6L848.3,143.8L848.5,140.7L854.4,135.2L856.2,131.2L862.5,121.5L869.2,115.8L880.6,113.8L893.9,110.1Z"],["North Carolina","M798.6,339.0L811.6,337.3L826.5,334.9L895.2,321.2L899.4,330.3L893.9,330.5L893.5,331.8L887.3,334.6L886.7,336.1L882.5,337.4L883.1,339.1L888.0,336.8L889.0,337.7L894.4,335.3L896.8,337.1L900.0,335.5L902.5,341.0L901.9,343.9L899.7,344.7L896.2,351.6L889.8,353.2L889.6,357.5L893.2,361.0L895.6,361.3L892.8,368.8L889.2,368.7L883.2,370.7L879.2,372.9L873.5,378.9L869.3,385.9L868.0,394.1L863.6,393.1L856.8,396.0L830.6,377.1L808.8,380.4L808.6,377.6L805.0,374.0L803.2,375.7L802.7,373.3L778.7,375.7L773.5,377.4L769.7,380.2L763.2,382.7L753.3,384.5L739.6,386.1L739.5,380.3L743.2,379.3L744.2,375.1L748.5,370.9L753.8,370.1L758.1,365.8L762.8,363.8L766.3,357.8L768.7,355.8L769.6,358.1L776.5,352.4L780.0,352.8L781.8,348.0L785.2,346.2L785.1,340.4L798.6,339.0Z"],["North Dakota","M491.1,60.0L493.2,67.6L492.1,70.8L492.5,80.5L493.7,85.1L496.8,93.3L497.2,108.7L497.8,109.8L497.5,116.2L498.8,121.5L500.8,124.1L501.4,133.7L375.6,127.7L379.6,81.8L381.8,54.6L491.1,60.0Z"],["Ohio","M785.9,207.2L791.2,239.5L788.7,241.2L790.4,243.7L790.9,247.4L789.4,253.6L789.1,262.7L783.3,271.6L781.2,273.0L778.9,271.7L777.3,275.5L775.2,275.7L773.6,280.7L774.5,283.4L772.9,285.9L769.7,282.6L767.1,288.9L768.5,292.5L766.5,294.1L766.2,297.4L761.4,298.6L758.4,295.7L756.2,295.3L754.8,291.3L752.3,292.5L750.6,295.2L743.3,294.2L740.6,296.3L736.0,293.6L730.1,293.4L729.6,291.3L725.2,286.7L718.1,287.6L714.4,253.7L710.9,224.8L734.8,220.9L742.2,223.2L744.8,224.9L746.3,222.8L750.7,226.1L753.3,226.9L761.2,222.5L766.1,222.5L770.7,217.2L777.7,211.6L785.9,207.2L785.9,207.2Z"],["Oklahoma","M432.7,349.4L537.3,350.9L537.5,363.1L541.5,390.0L541.1,432.9L533.4,430.3L531.5,427.5L526.3,425.2L525.0,427.3L519.9,427.2L518.8,425.9L514.1,428.3L512.1,427.0L507.9,428.2L503.9,431.9L502.4,429.7L498.3,428.0L493.9,427.9L492.5,425.1L487.4,430.5L485.8,427.5L483.5,428.4L481.8,426.3L477.2,424.4L473.6,427.5L472.2,424.2L469.3,423.7L467.8,421.0L464.0,419.8L461.4,422.0L459.8,420.0L455.9,420.2L451.6,417.9L447.6,418.0L446.4,413.3L440.1,412.8L437.7,413.5L433.4,408.7L431.9,408.9L433.9,361.6L399.1,359.8L376.2,358.3L377.1,346.2L395.4,347.6L432.7,349.4Z"],["Oregon","M60.7,63.0L62.3,63.2L65.0,66.6L65.7,69.9L64.5,77.1L72.1,82.0L80.3,80.3L84.9,81.2L89.7,83.9L89.8,85.6L99.6,84.6L101.5,86.4L106.5,87.0L111.1,85.7L118.8,85.5L125.4,86.6L128.0,85.6L161.9,93.7L163.3,98.2L166.8,100.8L167.4,104.3L162.4,110.5L160.5,114.4L158.0,116.9L157.8,119.1L155.2,122.2L153.3,122.6L148.0,130.3L148.5,133.8L151.6,134.9L152.6,137.1L148.6,144.4L138.9,187.8L109.8,181.3L87.3,175.5L69.4,170.8L46.5,164.0L31.8,159.9L15.0,155.0L13.4,151.6L14.4,143.6L16.3,138.5L15.2,133.7L18.1,130.4L21.2,124.6L25.7,118.7L28.6,113.2L36.4,94.0L36.9,91.3L41.2,83.2L45.4,71.4L46.5,64.6L48.5,60.9L55.9,59.4L58.0,62.9L60.7,63.0Z"],["Pennsylvania","M798.0,198.4L799.1,204.4L876.1,189.3L878.8,192.1L880.1,191.7L882.8,194.0L883.2,197.6L887.3,200.9L890.0,200.4L891.1,201.9L889.2,204.2L888.8,207.0L885.5,212.9L887.5,215.1L885.7,219.8L886.5,222.5L888.9,222.8L889.8,225.8L896.0,229.5L895.6,231.7L891.0,236.9L891.1,238.8L886.7,241.8L882.9,241.9L880.4,245.2L813.7,258.3L794.8,261.5L791.2,239.5L785.9,207.2L785.9,207.2L788.9,205.4L798.0,198.0L798.0,198.4Z"],["Rhode Island","M950.3,179.3L952.8,183.2L949.5,184.7L950.3,179.3ZM942.4,172.9L944.9,172.2L947.4,177.5L949.6,178.7L947.4,178.9L946.5,182.8L947.3,187.9L941.0,190.7L941.5,188.3L937.8,174.3L942.4,172.9Z"],["South Carolina","M769.7,380.2L773.5,377.4L778.7,375.7L802.7,373.3L803.2,375.7L805.0,374.0L808.6,377.6L808.8,380.4L830.6,377.1L856.8,396.0L853.6,397.8L850.0,402.6L846.9,409.5L847.1,414.6L844.4,419.1L839.9,419.9L839.5,423.0L835.3,426.9L833.3,430.8L829.4,433.0L825.5,437.4L825.3,439.2L821.5,441.8L817.8,447.7L812.8,446.3L812.1,442.2L807.9,436.3L804.9,435.0L803.9,429.9L801.9,426.2L796.0,423.3L791.9,419.3L791.7,416.5L785.8,413.2L782.5,409.1L777.6,406.7L773.7,402.2L772.7,399.5L768.9,394.6L767.0,395.3L759.7,391.0L759.7,388.5L763.2,382.7L769.7,380.2Z"],["South Dakota","M375.6,127.7L501.4,133.7L501.0,136.5L496.4,141.6L499.3,146.3L503.2,149.1L503.0,192.6L500.7,193.1L501.6,195.1L501.0,199.4L503.2,201.8L501.9,203.5L501.3,208.3L499.7,211.9L503.0,217.2L499.8,216.6L498.6,213.1L489.4,208.5L481.1,208.3L478.6,207.8L476.4,210.1L467.5,205.5L466.9,204.3L412.0,201.9L382.2,199.8L369.5,198.8L373.5,150.6L373.7,150.6L375.6,127.7Z"],["Tennessee","M663.6,357.0L662.9,352.6L667.2,353.3L691.3,350.6L712.5,349.3L716.2,348.6L730.6,347.7L746.9,346.0L747.1,345.5L785.1,340.4L785.2,346.2L781.8,348.0L780.0,352.8L776.5,352.4L769.6,358.1L768.7,355.8L766.3,357.8L762.8,363.8L758.1,365.8L753.8,370.1L748.5,370.9L744.2,375.1L743.2,379.3L739.5,380.3L739.6,386.1L714.6,389.1L680.3,392.2L663.8,393.7L658.5,394.1L622.5,396.7L624.4,395.9L626.0,391.5L625.4,385.6L628.7,381.4L629.1,377.6L631.9,376.1L632.3,371.6L635.6,365.2L635.1,359.2L636.2,359.1L637.4,359.0L639.7,358.6L663.6,357.0Z"],["Texas","M399.1,359.8L433.9,361.6L431.9,408.9L433.4,408.7L437.7,413.5L440.1,412.8L446.4,413.3L447.6,418.0L451.6,417.9L455.9,420.2L459.8,420.0L461.4,422.0L464.0,419.8L467.8,421.0L469.3,423.7L472.2,424.2L473.6,427.5L477.2,424.4L481.8,426.3L483.5,428.4L485.8,427.5L487.4,430.5L492.5,425.1L493.9,427.9L498.3,428.0L502.4,429.7L503.9,431.9L507.9,428.2L512.1,427.0L514.1,428.3L518.8,425.9L519.9,427.2L525.0,427.3L526.3,425.2L531.5,427.5L533.4,430.3L541.1,432.9L543.3,435.1L547.2,433.8L550.0,434.8L550.3,447.7L550.8,472.6L555.4,477.9L555.7,483.2L561.5,492.9L562.0,498.0L560.0,504.3L558.0,506.9L558.8,510.2L557.4,512.8L559.1,517.4L554.3,526.1L556.2,528.4L552.8,528.6L541.9,532.1L538.0,530.3L537.2,526.4L534.5,529.2L532.6,528.6L531.6,532.0L533.8,533.4L534.2,537.9L530.3,542.7L523.9,548.7L511.2,555.1L509.9,554.1L506.0,555.7L505.9,554.2L500.7,555.2L498.3,552.2L496.7,552.8L502.3,559.1L498.2,561.0L494.4,559.8L493.7,564.2L488.9,568.6L483.9,576.9L480.6,585.5L478.2,584.8L477.6,588.0L480.1,587.2L478.8,593.5L477.1,593.7L476.9,597.3L478.9,599.3L479.4,606.5L481.8,609.1L482.3,613.7L484.2,617.8L477.4,620.2L474.7,617.0L469.6,615.7L462.7,615.8L456.9,611.7L452.5,611.2L449.3,608.0L444.7,606.8L441.7,603.7L440.0,596.4L436.2,591.9L436.8,588.2L435.2,584.2L435.9,580.8L433.3,576.9L431.1,576.4L427.6,572.8L426.6,568.4L423.6,564.3L419.2,560.8L417.3,553.5L415.3,551.4L412.8,545.5L412.1,540.7L409.6,537.1L405.3,533.8L404.4,531.7L400.3,529.6L397.4,524.1L388.3,522.4L382.8,522.3L378.2,520.1L377.0,522.6L371.9,523.0L367.8,527.8L364.9,535.7L363.6,535.7L360.4,540.2L356.9,540.1L352.0,536.0L339.4,529.0L337.2,525.6L332.4,522.1L329.5,515.0L329.8,508.7L326.8,503.4L326.4,499.0L324.4,496.0L316.8,491.1L313.0,485.1L309.8,482.8L306.6,477.6L301.7,474.6L298.8,467.8L295.9,466.2L293.9,463.2L294.7,460.8L366.8,467.6L368.6,443.3L370.9,418.7L375.5,358.2L376.2,358.3L399.1,359.8Z"],["Utah","M223.9,204.8L243.6,207.9L239.8,232.0L275.5,237.4L269.2,282.6L266.2,303.1L266.2,305.8L262.3,334.0L234.7,329.9L167.9,318.4L191.0,198.8L223.9,204.8Z"],["Vermont","M924.3,102.4L925.1,104.7L923.9,109.1L926.4,112.6L924.7,117.2L919.7,120.9L921.3,126.6L920.3,129.0L920.2,134.6L918.4,140.0L919.7,150.3L920.7,153.6L919.5,155.2L920.2,158.8L922.2,160.2L908.2,163.3L907.5,161.2L904.1,144.8L900.4,141.6L900.9,139.4L897.9,133.3L898.6,128.1L898.0,123.4L895.4,119.6L895.3,115.0L893.9,110.1L911.1,106.1L924.3,102.4Z"],["Virginia","M896.4,284.4L899.1,283.4L897.6,288.0L895.4,290.0L895.1,295.8L893.1,305.5L890.3,308.0L888.6,305.0L888.7,297.3L891.6,287.0L896.4,284.4ZM885.3,288.3L885.7,288.2L884.8,288.4L885.3,288.3ZM835.3,260.7L846.3,266.9L847.4,262.0L850.3,261.8L852.6,263.4L853.3,266.9L857.4,267.3L860.2,269.1L862.3,272.2L861.5,276.3L859.5,277.8L858.7,281.5L860.0,283.9L864.8,282.1L866.5,285.7L873.3,285.9L875.7,288.6L881.6,290.8L880.6,297.9L883.9,302.7L881.8,305.7L882.2,308.8L884.9,310.1L882.9,313.6L878.3,310.6L877.6,312.1L881.6,314.1L890.9,312.8L895.2,321.2L826.5,334.9L811.6,337.3L798.6,339.0L785.1,340.4L747.1,345.5L756.9,340.7L757.8,337.9L761.3,336.5L761.2,334.3L763.8,332.3L763.5,330.5L769.9,325.9L776.2,318.4L776.2,320.4L779.4,324.1L782.9,325.6L785.2,325.1L788.4,321.4L791.3,323.5L796.0,321.4L803.8,315.4L804.7,316.8L807.6,314.1L807.0,309.7L808.4,305.6L811.3,301.4L812.0,296.8L814.9,291.7L815.3,285.9L819.0,288.7L822.2,289.2L823.8,286.9L826.2,277.6L828.9,279.3L835.6,268.0L835.3,260.7Z"],["Washington","M175.9,22.9L169.2,51.7L162.2,83.1L161.5,85.0L162.7,89.6L161.9,93.7L128.0,85.6L125.4,86.6L118.8,85.5L111.1,85.7L106.5,87.0L101.5,86.4L99.6,84.6L89.8,85.6L89.7,83.9L84.9,81.2L80.3,80.3L72.1,82.0L64.5,77.1L65.7,69.9L65.0,66.6L62.3,63.2L60.7,63.0L58.0,62.9L55.9,59.4L53.3,57.7L50.5,58.3L48.1,55.4L49.6,52.4L52.2,51.4L50.4,45.6L52.1,32.5L51.3,30.5L52.3,21.1L50.3,16.8L51.1,9.6L54.2,5.6L56.7,8.7L62.2,13.6L66.6,14.8L70.6,17.2L75.0,17.3L76.4,19.9L80.1,20.8L81.2,26.6L83.2,26.8L81.6,33.7L81.0,40.2L82.7,40.0L82.7,34.3L84.6,29.2L88.7,24.6L87.2,21.9L88.1,18.1L87.8,13.5L89.4,10.7L89.4,6.9L87.1,5.6L85.6,2.3L86.9,0.0L175.9,22.9ZM82.9,16.0L85.2,15.6L83.5,20.2L81.6,17.7L82.9,16.0ZM79.9,8.3L82.5,5.8L83.8,10.1L82.2,13.1L78.8,11.2L79.9,8.3Z"],["West Virginia","M791.2,239.5L794.8,261.5L813.7,258.3L815.7,270.7L818.9,267.8L821.7,263.1L824.3,263.4L827.2,259.2L832.9,260.0L833.1,257.2L836.1,256.8L837.4,254.6L840.9,256.3L844.0,255.7L847.4,262.0L846.3,266.9L835.3,260.7L835.6,268.0L828.9,279.3L826.2,277.6L823.8,286.9L822.2,289.2L819.0,288.7L815.3,285.9L814.9,291.7L812.0,296.8L811.3,301.4L808.4,305.6L807.0,309.7L807.6,314.1L804.7,316.8L803.8,315.4L796.0,321.4L791.3,323.5L788.4,321.4L785.2,325.1L782.9,325.6L779.4,324.1L776.2,320.4L776.2,318.4L773.7,318.3L769.7,316.1L768.4,313.4L764.9,310.3L762.0,306.0L761.4,298.6L766.2,297.4L766.5,294.1L768.5,292.5L767.1,288.9L769.7,282.6L772.9,285.9L774.5,283.4L773.6,280.7L775.2,275.7L777.3,275.5L778.9,271.7L781.2,273.0L783.3,271.6L789.1,262.7L789.4,253.6L790.9,247.4L790.4,243.7L788.7,241.2L791.2,239.5Z"],["Wisconsin","M603.9,115.7L607.1,116.9L609.2,120.9L626.7,124.6L634.1,127.7L636.3,126.7L643.6,128.5L645.8,131.4L649.6,134.0L649.8,138.2L648.5,141.6L652.5,141.8L651.2,145.4L654.0,147.7L653.6,150.6L650.4,151.4L648.1,157.2L647.4,161.1L649.4,161.6L651.8,158.9L654.2,153.9L657.6,151.7L659.8,145.4L663.2,143.8L663.3,146.9L661.1,150.1L657.3,160.5L656.4,166.2L656.9,170.2L655.2,171.7L654.1,177.2L655.1,181.8L653.8,185.0L652.4,192.7L653.3,198.7L655.9,203.8L655.9,210.9L638.5,212.3L605.7,214.1L604.3,211.1L597.9,208.6L596.3,204.8L595.5,199.4L597.4,196.4L594.7,194.1L594.3,190.5L593.2,187.8L593.5,183.9L589.9,178.8L587.2,178.0L582.0,174.1L581.1,170.9L575.7,168.5L573.8,165.9L570.2,165.6L565.5,161.4L566.4,152.5L565.9,148.4L567.8,144.6L565.5,141.7L563.6,141.5L563.7,138.0L567.4,132.7L572.1,130.6L573.1,129.1L572.5,114.8L575.8,112.7L577.1,113.7L580.9,113.8L592.2,109.2L596.4,106.7L597.9,108.4L595.8,111.6L601.5,115.4L603.9,115.7Z"],["Wyoming","M288.3,140.9L341.9,147.4L373.5,150.6L369.5,198.8L365.3,247.2L335.1,244.5L295.8,239.9L275.5,237.4L239.8,232.0L243.6,207.9L253.1,148.5L255.0,135.9L288.3,140.9Z"]],"h":620.2,"stats":{"mission":{"mean":1787,"median":1607,"u100":0.081,"state":0.085,"region":0.359},"diffusion":{"mean":1852,"median":1648,"u100":0.101,"state":0.116,"region":0.364}}}};
+
+const TYPES = [
+  {key:'University',           fill:'#f8c0f0', ink:'#b24fa4', short:'Univ.'},
+  {key:'Startup',              fill:'#d0d872', ink:'#868e12', short:'Startup'},
+  {key:'Mid-sized Enterprise', fill:'#81e4b6', ink:'#23996a', short:'Mid-size'},
+  {key:'SME',                  fill:'#95dbf5', ink:'#2585b8', short:'SME'},
+  {key:'Large Enterprise',     fill:'#ffbe76', ink:'#c26f14', short:'Large'},
+  {key:'Government',           fill:'#ffaeb1', ink:'#c3424c', short:'Gov.'},
+];
+const T = Object.fromEntries(TYPES.map(t=>[t.key,t]));
+const POLS = ['mission','diffusion'];
+const POLNAME = {mission:'Mission-oriented', diffusion:'Diffusion-oriented'};
+const POLSHORT = {mission:'Mission', diffusion:'Diffusion'};
+const POLCOLOR = {mission:'#2b4c7e', diffusion:'#b0476a'};
+const MEASURES = [
+  {key:'deg', t:'Degree',      long:'Degree (mutual partners)', fmt:v=>String(v)},
+  {key:'btw', t:'Betweenness', long:'Betweenness centrality',  fmt:v=>v.toFixed(1)},
+  {key:'clo', t:'Closeness',   long:'Closeness centrality',    fmt:v=>v.toFixed(3)},
+  {key:'eig', t:'Eigenvector', long:'Eigenvector centrality',  fmt:v=>v.toFixed(3)},
+];
+const M = Object.fromEntries(MEASURES.map(m=>[m.key,m]));
+const SVGNS = 'http://www.w3.org/2000/svg';
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const darken = (hex, f) => { const n=parseInt(hex.slice(1),16); return `rgb(${(n>>16)*f|0},${(n>>8&255)*f|0},${(n&255)*f|0})`; };
+const mk = (tag, attrs={}, parent) => { const e=document.createElementNS(SVGNS,tag); for (const k in attrs) e.setAttribute(k,attrs[k]); parent && parent.appendChild(e); return e; };
+const ease = t => t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const LABEL = id => DATA.nodes[id][0], TYPE = id => DATA.nodes[id][1];
+const dotOf = id => `<span class="dot" style="background:${T[TYPE(id)].fill}"></span>`;
+
+/* ---------- model ---------- */
+const NET = {};
+for (const pol of POLS) {
+  const d = DATA.nets[pol], nodes = new Map(), adj = new Map();
+  for (const [id,x,y,deg,btw,clo,eig] of d.nodes) { nodes.set(id, {id,x,y,deg,btw,clo,eig}); adj.set(id, []); }
+  for (const [a,b] of d.edges) { adj.get(a).push(b); adj.get(b).push(a); }
+  // ranks (1 = highest); closeness ranked within the main component only
+  const ranks = {};
+  for (const m of MEASURES) {
+    const arr = [...nodes.values()].filter(n => n[m.key]!=null).sort((a,b)=>b[m.key]-a[m.key]);
+    ranks[m.key] = new Map(); let prev = null, r = 0;
+    arr.forEach((n,i) => { if (n[m.key]!==prev) { r = i+1; prev = n[m.key]; } ranks[m.key].set(n.id, r); });
+    ranks[m.key].n = arr.length;
+  }
+  for (const n of nodes.values()) { const g = DATA.geo.nodes[n.id]; n.gx = g[0]; n.gy = g[1]; }
+  const inactive = Object.keys(DATA.geo.nodes).map(Number).filter(id => !nodes.has(id));
+  NET[pol] = {nodes, adj, edges:d.edges, ranks, inactive};
+}
+const GEO = id => DATA.geo.nodes[id];
+const LAYS = {net:{t:'Network', rf:1}, map:{t:'Map', rf:.42}};
+const LXY = (lay, n) => lay==='map' ? [n.gx, n.gy] : [n.x, n.y];
+function hav(a, b) { const R = Math.PI/180, [la1,lo1] = [GEO(a)[4]*R, GEO(a)[5]*R], [la2,lo2] = [GEO(b)[4]*R, GEO(b)[5]*R];
+  const h = Math.sin((la2-la1)/2)**2 + Math.cos(la1)*Math.cos(la2)*Math.sin((lo2-lo1)/2)**2; return 6371.0088*2*Math.asin(Math.sqrt(h)); }
+// size scales shared by both policies (common scale)
+const SCALE = {};
+for (const m of MEASURES) {
+  const vals = POLS.flatMap(p => [...NET[p].nodes.values()].map(n=>n[m.key]).filter(v=>v!=null));
+  SCALE[m.key] = {min: m.key==='clo' ? Math.min(...vals) : 0, max: Math.max(...vals)};
+}
+function radius(n, key) {
+  const v = n[key], s = SCALE[key];
+  const f = v==null ? 0 : (v - s.min) / (s.max - s.min || 1);
+  return 0.75 * (10 + 90*f);
+}
+
+/* ---------- state ---------- */
+const S = {lay:'net', pol:'mission', size:'deg', sel:null, hover:null, off:new Set(), anim:false};
+let PANES = [];
+const visPols = () => S.pol==='compare' ? POLS : [S.pol];
+const isOff = id => S.off.has(TYPE(id));
+
+function readHash() {
+  const h = new URLSearchParams(location.hash.slice(1));
+  if (['mission','diffusion','compare'].includes(h.get('policy'))) S.pol = h.get('policy');
+  if (M[h.get('size')]) S.size = h.get('size');
+  if (LAYS[h.get('layout')]) S.lay = h.get('layout');
+  const node = +h.get('node'); if (node && DATA.nodes[node]) S.sel = node;
+}
+function writeHash() { history.replaceState(null,'',(S.lay==='map'?'#layout=map&':'#')+`policy=${S.pol}&size=${S.size}` + (S.sel!=null?`&node=${S.sel}`:'')); }
+
+/* ---------- segmented controls ---------- */
+function seg(el, items, get, set) {
+  el.innerHTML = '<span class="thumb"></span>' + items.map(i=>`<button data-v="${i.v}">${i.t}</button>`).join('');
+  el.querySelectorAll('button').forEach(b => b.onclick = () => set(b.dataset.v));
+  const sync = () => { let on=null; el.querySelectorAll('button').forEach(b => { const o=b.dataset.v===get(); b.classList.toggle('on',o); if (o) on=b; });
+    const th = el.querySelector('.thumb'); if (on) { th.style.left=on.offsetLeft+'px'; th.style.width=on.offsetWidth+'px'; } };
+  sync(); return sync;
+}
+const syncLay = seg($('#segLay'), Object.entries(LAYS).map(([v,o])=>({v,t:o.t})), ()=>S.lay, v => setLay(v));
+const syncPol = seg($('#segPol'), [{v:'mission',t:'Mission'},{v:'diffusion',t:'Diffusion'},{v:'compare',t:'Compare'}], ()=>S.pol, v => setPol(v));
+const syncSize = seg($('#segSize'), MEASURES.map(m=>({v:m.key,t:m.t})), ()=>S.size, v => setSize(v));
+
+/* ---------- panes ---------- */
+const panesEl = $('#panes');
+function buildPanes(fade) {
+  PANES.forEach(p => p.el.remove());
+  PANES = visPols().map(pol => {
+    const el = document.createElement('div'); el.className = 'pane';
+    panesEl.insertBefore(el, panesEl.querySelector('.bar'));
+    el.innerHTML = `<div class="kicker"><span class="sw" style="background:${POLCOLOR[pol]}"></span>${POLNAME[pol]} policy</div>`;
+    const svg = mk('svg', {}, el);
+    const P = {pol, el, svg, gB:mk('g',{},svg), gI:mk('g',{},svg), gE:mk('g',{},svg), gF:mk('g',{},svg), gN:mk('g',{},svg), gL:mk('g',{},svg), nodes:new Map(), edges:[], view:null, fit:null, rk:S.size, rt:1, lay:S.lay, tr:null, ina:[]};
+    const net = NET[pol];
+    for (const [nm, d] of DATA.geo.states) { const sp = mk('path', {d, class:'st'}, P.gB); mk('title', {}, sp).textContent = nm; }
+    for (const id of net.inactive) {
+      const c = mk('circle', {class:'ina'}, P.gI); P.ina.push({id, c});
+      c.addEventListener('pointerenter', e => inaTip(id, pol, e)); c.addEventListener('pointermove', moveTip); c.addEventListener('pointerleave', hideTip);
+    }
+    for (const [a,b] of net.edges) P.edges.push({a, b, el: mk('path',{fill:'none'}, P.gE)});
+    const order = [...net.nodes.values()].sort((a,b)=>b.deg-a.deg);
+    for (const n of order) {
+      const g = mk('g',{class:'node'}, P.gN), c = mk('circle',{}, g);
+      c.style.fill = T[TYPE(n.id)].fill; c.style.stroke = darken(T[TYPE(n.id)].fill,.5);
+      const lb = mk('text',{class:'lbl'}, P.gL); lb.textContent = LABEL(n.id);
+      P.nodes.set(n.id, {g, c, lb, lw:0, n});
+      c.addEventListener('pointerenter', e => { S.hover = n.id; refresh(); nodeTip(n.id, pol, e); });
+      c.addEventListener('pointermove', moveTip);
+      c.addEventListener('pointerleave', () => { S.hover = null; refresh(); hideTip(); });
+      c.addEventListener('click', e => { e.stopPropagation(); if (justDragged) return; select(n.id); });
+    }
+    attachZoom(P);
+    return P;
+  });
+  if (fade) { panesEl.classList.remove('fade'); void panesEl.offsetWidth; panesEl.classList.add('fade'); }
+  requestAnimationFrame(() => {
+    for (const P of PANES) { for (const v of P.nodes.values()) v.lw = v.lb.getComputedTextLength() || 80; P.fit = fitFor(P, P.lay); P.view = {...P.fit}; }
+    renderAll();
+    if (S.sel!=null) zoomTo(S.sel, false);
+  });
+}
+function fitFor(P, lay) {
+  const r = P.svg.getBoundingClientRect(), W = r.width, H = r.height;
+  let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
+  if (lay==='map') { x0 = 0; y0 = 0; x1 = 1000; y1 = DATA.geo.h; }
+  else for (const n of NET[P.pol].nodes.values()) { const rr = radius(n,'deg'); x0=Math.min(x0,n.x-rr); y0=Math.min(y0,n.y-rr); x1=Math.max(x1,n.x+rr); y1=Math.max(y1,n.y+rr); }
+  const padT = 48, padB = 70, padX = 24;
+  const k = Math.min((W-2*padX)/(x1-x0), (H-padT-padB)/(y1-y0));
+  return {k, x:(W-(x1-x0)*k)/2 - x0*k, y: padT + ((H-padT-padB)-(y1-y0)*k)/2 - y0*k};
+}
+// screen position and radius of a node in one layout
+function place(lay, view, fit, n, rw) {
+  const [x, y] = LXY(lay, n);
+  return {x:x*view.k+view.x, y:y*view.k+view.y, r: rw*LAYS[lay].rf*fit.k*Math.pow(view.k/fit.k, .55)};
+}
+function scrR(P, n, rw) {
+  const b = place(P.lay, P.view, P.fit, n, rw); if (!P.tr) return b;
+  const a = place(P.tr.lay, P.tr.view, P.tr.fit, n, rw), t = ease(P.tr.t);
+  return {x:a.x+(b.x-a.x)*t, y:a.y+(b.y-a.y)*t, r:a.r+(b.r-a.r)*t};
+}
+const mapness = P => { const m = P.lay==='map' ? 1 : 0; if (!P.tr) return m; const t = ease(P.tr.t); return (P.tr.lay==='map'?1:0)*(1-t) + m*t; };
+
+/* ---------- render ---------- */
+function focusFor(P) {
+  const id = S.hover ?? S.sel; if (id==null) return null;
+  const net = NET[P.pol]; if (!net.nodes.has(id)) return {center:id, nodes:new Set()};
+  return {center:id, nodes:new Set([id, ...net.adj.get(id)])};
+}
+function curve(A, B) {
+  const dx=B.x-A.x, dy=B.y-A.y, cx=(A.x+B.x)/2-dy*.08, cy=(A.y+B.y)/2+dx*.08;
+  return `M${A.x.toFixed(1)},${A.y.toFixed(1)}Q${cx.toFixed(1)},${cy.toFixed(1)} ${B.x.toFixed(1)},${B.y.toFixed(1)}`;
+}
+function drawPane(P) {
+  const F = focusFor(P), pos = new Map(), mp = mapness(P);
+  const bv = (P.tr && P.tr.lay==='map' && P.lay!=='map') ? P.tr.view : P.view;
+  P.gB.style.display = P.gI.style.display = mp>0.001 ? '' : 'none';
+  if (mp>0.001) {
+    P.gB.setAttribute('transform', `translate(${bv.x.toFixed(2)},${bv.y.toFixed(2)}) scale(${bv.k.toFixed(5)})`); P.gB.style.opacity = mp;
+    const rr = Math.max(1.8, 2.6*Math.pow(P.view.k/P.fit.k, .4));
+    for (const {id, c} of P.ina) { const s = scrR(P, {gx:GEO(id)[0], gy:GEO(id)[1], x:GEO(id)[0], y:GEO(id)[1]}, 0);
+      c.setAttribute('cx', s.x.toFixed(1)); c.setAttribute('cy', s.y.toFixed(1)); c.setAttribute('r', rr.toFixed(2));
+      c.style.opacity = (isOff(id) ? .15 : (F ? .25 : .9)) * mp; c.style.pointerEvents = (mp>.99 && !isOff(id)) ? 'auto' : 'none'; }
+  }
+  // size transition blend
+  const rw = n => { const to = radius(n, S.size); if (P.rt>=1) return to; const fr = radius(n, P.rk); return fr + (to-fr)*ease(P.rt); };
+  for (const [id, v] of P.nodes) {
+    const s = scrR(P, v.n, rw(v.n)), r = Math.max(1.6, s.r); pos.set(id, {x:s.x, y:s.y, r});
+    v.c.setAttribute('cx', s.x.toFixed(1)); v.c.setAttribute('cy', s.y.toFixed(1)); v.c.setAttribute('r', r.toFixed(2));
+    v.c.style.strokeWidth = (0.1*r+0.6).toFixed(2);
+    let o = 1; if (isOff(id)) o = .12; else if (F && !F.nodes.has(id)) o = .16;
+    v.g.style.opacity = o; v.c.style.pointerEvents = isOff(id) ? 'none' : 'auto';
+  }
+  P.gF.textContent = '';
+  for (const e of P.edges) {
+    const A = pos.get(e.a), B = pos.get(e.b), d = curve(A,B);
+    e.el.setAttribute('d', d);
+    const inc = F && (F.center===e.a || F.center===e.b);
+    let op = F ? .07 : .5; if (isOff(e.a)||isOff(e.b)) op = .05;
+    e.el.style.stroke = '#c3c8d0'; e.el.style.strokeWidth = .8; e.el.style.opacity = inc ? 0 : op;
+    if (inc && !isOff(e.a) && !isOff(e.b)) {
+      const o = F.center===e.a ? e.b : e.a;
+      const p = mk('path',{d, fill:'none'}, P.gF); p.style.cssText = `stroke:${T[TYPE(o)].ink};stroke-width:1.4;opacity:.75`;
+    }
+  }
+  // labels
+  for (const v of P.nodes.values()) v.lb.style.display = 'none';
+  const placed = [];
+  const ids = [...P.nodes.keys()].filter(id => !isOff(id));
+  const prio = id => (F && F.center===id ? 1e7 : 0) + (F && F.nodes.has(id) ? 1e6 : 0) + pos.get(id).r;
+  ids.sort((a,b)=>prio(b)-prio(a));
+  for (const id of ids) {
+    const s = pos.get(id), v = P.nodes.get(id), foc = F && F.nodes.has(id);
+    if (F && F.nodes.size && !foc) continue;
+    if (!foc && s.r < 7) continue;
+    const w = v.lw+6, cands = foc ? [[0,0],[0,s.r+10],[0,-s.r-10],[s.r+w/2+3,0],[-s.r-w/2-3,0]] : [[0,0]];
+    for (const [dx,dy] of cands) {
+      const cx=s.x+dx, cy=s.y+dy, b={x0:cx-w/2,x1:cx+w/2,y0:cy-7.5,y1:cy+7.5};
+      if (!placed.some(q => !(b.x1<q.x0||b.x0>q.x1||b.y1<q.y0||b.y0>q.y1))) { placed.push(b); v.lb.style.display=''; v.lb.setAttribute('x',cx.toFixed(1)); v.lb.setAttribute('y',cy.toFixed(1)); break; }
+    }
+  }
+}
+function renderAll() { for (const P of PANES) if (P.fit) drawPane(P); }
+let rq = 0;
+function refresh() { if (rq) return; rq = requestAnimationFrame(() => { rq = 0; renderAll(); }); }
+
+/* ---------- actions ---------- */
+function setPol(v) { if (v===S.pol) return; S.pol = v; S.hover = null; syncPol(); buildPanes(true); renderPanel(); writeHash(); }
+function setLay(v) {
+  if (v===S.lay) return; S.lay = v; syncLay(); writeHash(); renderPanel(); hideTip();
+  const t0 = performance.now();
+  for (const P of PANES) { if (!P.fit) continue; P.tr = {lay:P.lay, view:{...P.view}, fit:P.fit, t:0}; P.lay = v; P.fit = fitFor(P, v); P.view = {...P.fit}; }
+  const step = now => { const t = Math.min(1,(now-t0)/750); for (const P of PANES) if (P.tr) P.tr.t = t;
+    if (t>=1) for (const P of PANES) P.tr = null;
+    renderAll(); if (t<1) requestAnimationFrame(step); else if (S.sel!=null) zoomTo(S.sel, true); };
+  requestAnimationFrame(step);
+}
+function setSize(v) {
+  if (v===S.size) return;
+  const from = S.size; S.size = v; syncSize(); writeHash(); renderPanel();
+  const t0 = performance.now();
+  for (const P of PANES) { P.rk = from; P.rt = 0; }
+  const step = now => { const t = Math.min(1,(now-t0)/600); for (const P of PANES) P.rt = t; renderAll(); if (t<1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+function select(id, zoom) { S.sel = id; refresh(); renderPanel(); writeHash(); if (zoom) zoomTo(id, true); }
+function zoomTo(id, animate) {
+  for (const P of PANES) {
+    const n = NET[P.pol].nodes.get(id); if (!n || !P.fit) continue;
+    const r = P.svg.getBoundingClientRect(), k = Math.max(P.view.k, P.fit.k*1.8);
+    const [nx, ny] = LXY(P.lay, n), v = {k, x:r.width/2 - nx*k, y:r.height/2 - ny*k};
+    animate ? animateView(P, v) : (P.view = v);
+  }
+  if (!animate) renderAll();
+}
+
+/* ---------- zoom & pan ---------- */
+let justDragged = false;
+function animateView(P, v) {
+  const v0 = {...P.view}, t0 = performance.now();
+  const step = now => { const t = ease(Math.min(1,(now-t0)/480)); P.view = {k:v0.k+(v.k-v0.k)*t, x:v0.x+(v.x-v0.x)*t, y:v0.y+(v.y-v0.y)*t}; drawPane(P); if (t<1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+function zoomAt(P, f, cx, cy, animate) {
+  const v = P.view, k = Math.max(P.fit.k*.6, Math.min(P.fit.k*14, v.k*f)), r = k/v.k, nv = {k, x:cx-(cx-v.x)*r, y:cy-(cy-v.y)*r};
+  if (animate) animateView(P, nv); else { P.view = nv; refresh(); }
+}
+function attachZoom(P) {
+  const svg = P.svg; let drag = null;
+  svg.addEventListener('wheel', e => { e.preventDefault(); const r = svg.getBoundingClientRect(); zoomAt(P, Math.exp(-e.deltaY*(e.ctrlKey?0.01:0.0016)), e.clientX-r.left, e.clientY-r.top); }, {passive:false});
+  svg.addEventListener('pointerdown', e => { if (e.button!==0) return; drag = {x:e.clientX, y:e.clientY, v:{...P.view}, moved:false}; });
+  window.addEventListener('pointermove', e => {
+    if (!drag) return; if (!(e.buttons&1)) { drag = null; svg.classList.remove('drag'); return; }
+    const dx = e.clientX-drag.x, dy = e.clientY-drag.y;
+    if (!drag.moved && Math.hypot(dx,dy)>3) { drag.moved = true; svg.classList.add('drag'); hideTip(); }
+    if (drag.moved) { P.view = {k:drag.v.k, x:drag.v.x+dx, y:drag.v.y+dy}; refresh(); }
+  });
+  window.addEventListener('pointerup', () => { if (!drag) return; justDragged = drag.moved; svg.classList.remove('drag'); drag = null; setTimeout(()=>{justDragged=false},0); });
+  svg.addEventListener('click', e => { if (justDragged) return; if (e.target===svg) { S.sel = null; refresh(); renderPanel(); writeHash(); } });
+  svg.addEventListener('pointerleave', () => { if (S.hover!=null) { S.hover = null; refresh(); } hideTip(); });
+}
+const mid = P => { const r = P.svg.getBoundingClientRect(); return [r.width/2, r.height/2]; };
+$('#zin').onclick = () => PANES.forEach(P => zoomAt(P, 1.6, ...mid(P), true));
+$('#zout').onclick = () => PANES.forEach(P => zoomAt(P, 1/1.6, ...mid(P), true));
+$('#zfit').onclick = () => PANES.forEach(P => animateView(P, {...P.fit}));
+window.addEventListener('resize', () => { for (const P of PANES) { P.fit = fitFor(P, P.lay); P.view = {...P.fit}; } syncLay(); syncPol(); syncSize(); refresh(); });
+document.addEventListener('keydown', e => { if (e.key==='Escape' && document.activeElement!==$('#q')) { S.sel = null; refresh(); renderPanel(); writeHash(); } });
+
+/* ---------- tooltip ---------- */
+const tip = $('#tip');
+function valStr(pol, id, key) {
+  const n = NET[pol].nodes.get(id); if (!n) return null;
+  if (n[key]==null) return 'n/a';
+  return `${M[key].fmt(n[key])} <span style="color:var(--ink-3)">(#${NET[pol].ranks[key].get(id)} of ${NET[pol].ranks[key].n})</span>`;
+}
+function nodeTip(id, pol, e) {
+  if (isOff(id)) return;
+  tip.innerHTML = `<div class="t1">${dotOf(id)}${esc(LABEL(id))}</div><div class="t2">${esc(TYPE(id))}${S.lay==='map' ? ' · '+esc(GEO(id)[2]) : ''}</div>
+    <div class="t3">${M[S.size].t}: ${valStr(pol,id,S.size)}${S.size!=='deg' ? `<br>Degree: ${valStr(pol,id,'deg')}` : ''}</div>`;
+  tip.classList.add('show'); moveTip(e);
+}
+function inaTip(id, pol, e) {
+  tip.innerHTML = `<div class="t1">${dotOf(id)}${esc(LABEL(id))}</div><div class="t2">${esc(TYPE(id))} · ${esc(GEO(id)[2])}</div>
+    <div class="t3">No mutual link under the ${POLSHORT[pol]} policy</div>`;
+  tip.classList.add('show'); moveTip(e);
+}
+function moveTip(e) { const pad=16, r=tip.getBoundingClientRect(); let x=e.clientX+pad, y=e.clientY+pad;
+  if (x+r.width>innerWidth-8) x=e.clientX-r.width-pad; if (y+r.height>innerHeight-8) y=Math.max(8,innerHeight-r.height-8);
+  tip.style.left=x+'px'; tip.style.top=y+'px'; }
+function hideTip() { tip.classList.remove('show'); }
+
+/* ---------- panel ---------- */
+const panel = $('#panel');
+const f3 = v => v.toFixed(3);
+const METRICS = [
+  {k:'nodes', t:'Nodes', a:'nodesA', fmt:v=>v},
+  {k:'edges', t:'Edges', fmt:v=>v},
+  {k:'density', t:'Density', a:'densityA', fmt:f3},
+  {k:'avgdeg', t:'Average degree', a:'avgdegA', fmt:v=>v.toFixed(2)},
+  {k:'apl', t:'APL', fmt:f3},
+  {k:'clust', t:'Clustering', a:'clustA', fmt:f3},
+  {k:'mod', t:'Modularity', fmt:f3},
+  {k:'comps', t:'Components (Active)', fmt:v=>v},
+];
+function metricsTable() {
+  const pols = visPols();
+  const head = `<tr><th></th>${pols.map(p=>`<th><span class="pk"><i style="background:${POLCOLOR[p]}"></i>${POLSHORT[p]}</span></th>`).join('')}</tr>`;
+  return `<table class="mt">${head}${METRICS.map(m => `<tr><td>${m.t}</td>${pols.map(p => { const x = DATA.metrics[p];
+    return `<td>${m.fmt(x[m.k])}${m.a?` <span class="a">(${m.fmt(x[m.a])})</span>`:''}</td>`; }).join('')}</tr>`).join('')}</table>`;
+}
+function topList(pol, key, n=10) {
+  const arr = [...NET[pol].nodes.values()].filter(x=>x[key]!=null).sort((a,b)=>b[key]-a[key]).slice(0,n);
+  const mx = arr[0][key] || 1;
+  return `<div class="tl">${visPols().length>1?`<div class="h"><span class="pk"><i style="background:${POLCOLOR[pol]}"></i></span>${POLSHORT[pol]}</div>`:''}
+    ${arr.map(x => `<div class="row" data-id="${x.id}"><span class="n">${NET[pol].ranks[key].get(x.id)}</span>${dotOf(x.id)}<span class="nm">${esc(LABEL(x.id))}</span><span class="v">${M[key].fmt(x[key])}</span>
+      <span class="b" style="width:calc((100% - 34px) * ${(x[key]/mx).toFixed(3)});background:${T[TYPE(x.id)].ink}"></span></div>`).join('')}</div>`;
+}
+const BINS = [[1,1,'1'],[2,2,'2'],[3,4,'3–4'],[5,9,'5–9'],[10,19,'10–19'],[20,39,'20–39'],[40,999,'40+']];
+function degreeChart() {
+  const pols = visPols(), W = 372, H = 120, padL = 30, padB = 20, bw = (W-padL)/BINS.length;
+  const shares = pols.map(p => { const ds = [...NET[p].nodes.values()].map(n=>n.deg);
+    return BINS.map(([lo,hi]) => ds.filter(d=>d>=lo&&d<=hi).length / ds.length); });
+  const mx = Math.max(...shares.flat()), ymax = Math.ceil(mx*10)/10;
+  let s = `<svg viewBox="0 0 ${W} ${H}" height="${H}">`;
+  for (let g=0; g<=ymax+1e-9; g+=0.1) { const y = (H-padB)*(1-g/ymax); s += `<line x1="${padL}" x2="${W}" y1="${y}" y2="${y}" stroke="#eef0f3"/><text x="${padL-5}" y="${y+3.5}" font-size="10" fill="#9aa1ab" text-anchor="end">${Math.round(g*100)}%</text>`; }
+  BINS.forEach((b,i) => {
+    const gw = bw*.7, w = gw/pols.length;
+    pols.forEach((p,j) => { const v = shares[j][i], h = (H-padB)*v/ymax, x = padL + i*bw + bw*.15 + j*w;
+      s += `<rect x="${x.toFixed(1)}" y="${(H-padB-h).toFixed(1)}" width="${(w-1).toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${POLCOLOR[p]}" opacity=".85"><title>${POLSHORT[p]} · degree ${b[2]}: ${(v*100).toFixed(1)}% of organizations</title></rect>`; });
+    s += `<text x="${padL + i*bw + bw/2}" y="${H-5}" font-size="10.5" fill="#7b828c" text-anchor="middle">${b[2]}</text>`;
+  });
+  return s + '</svg>';
+}
+function compositionChart() {
+  const pols = visPols(), W = 372, barH = 16, gap = 6;
+  let rows = [];
+  for (const p of pols) {
+    const ns = [...NET[p].nodes.values()];
+    const cnt = Object.fromEntries(TYPES.map(t=>[t.key,0])), ends = Object.fromEntries(TYPES.map(t=>[t.key,0]));
+    ns.forEach(n => { cnt[TYPE(n.id)]++; ends[TYPE(n.id)] += n.deg; });
+    const tot = ns.length, te = ns.reduce((a,n)=>a+n.deg,0);
+    rows.push({p, lab:'Organizations', vals:TYPES.map(t=>cnt[t.key]/tot), raw:TYPES.map(t=>cnt[t.key])});
+    rows.push({p, lab:'Link ends', vals:TYPES.map(t=>ends[t.key]/te), raw:TYPES.map(t=>ends[t.key])});
+  }
+  const labW = pols.length>1 ? 150 : 92, H = rows.length*(barH+gap) + (pols.length>1 ? 8 : 0);
+  let s = `<svg viewBox="0 0 ${W} ${H}" height="${H}">`, y = 0;
+  rows.forEach((r,i) => {
+    if (pols.length>1 && i===2) y += 8;
+    s += `<text x="0" y="${y+barH/2+4}" font-size="11" fill="#4a515b">${pols.length>1?POLSHORT[r.p]+' · ':''}${r.lab}</text>`;
+    let x = labW; const ww = W - labW;
+    r.vals.forEach((v,k) => { const w = ww*v; const t = TYPES[k];
+      s += `<rect x="${x.toFixed(1)}" y="${y}" width="${Math.max(0,w-1).toFixed(1)}" height="${barH}" fill="${t.fill}" stroke="${darken(t.fill,.6)}" stroke-width=".5"><title>${r.lab} · ${t.key}: ${(v*100).toFixed(1)}% (${r.raw[k]})</title></rect>`;
+      if (v > .085) s += `<text x="${(x+w/2).toFixed(1)}" y="${y+barH/2+3.8}" font-size="10" fill="#1b1f24" text-anchor="middle" pointer-events="none">${Math.round(v*100)}%</text>`;
+      x += w; });
+    y += barH + gap;
+  });
+  return s + '</svg>';
+}
+function mixMatrix(pol) {
+  const idx = Object.fromEntries(TYPES.map((t,i)=>[t.key,i]));
+  const m = TYPES.map(()=>TYPES.map(()=>0)); const E = NET[pol].edges.length;
+  for (const [a,b] of NET[pol].edges) { const i = idx[TYPE(a)], j = idx[TYPE(b)]; const [r,c] = i>=j ? [i,j] : [j,i]; m[r][c]++; }
+  const mx = Math.max(...m.flat());
+  let h = `<div>${visPols().length>1?`<div class="h"><span class="pk"><i style="background:${POLCOLOR[pol]}"></i></span>${POLSHORT[pol]}</div>`:''}<table class="mx"><tr><th></th>${TYPES.map(t=>`<th>${t.short}</th>`).join('')}</tr>`;
+  TYPES.forEach((t,i) => {
+    h += `<tr><th class="r">${t.short}</th>`;
+    TYPES.forEach((u,j) => {
+      if (j>i) { h += '<td></td>'; return; }
+      const v = m[i][j], sh = v/E, a = v/mx;
+      h += `<td style="background:rgba(43,52,64,${(0.06+0.8*a).toFixed(3)});color:${a>.45?'#fff':'#1b1f24'}" title="${t.key} – ${u.key}: ${v} links (${(sh*100).toFixed(1)}%)">${v?(sh*100).toFixed(sh<.1?1:0):''}</td>`;
+    });
+    h += '</tr>';
+  });
+  return h + '</table></div>';
+}
+const GROWS = [
+  {k:'mean', t:'Mean link distance', fmt:v=>v.toLocaleString('en-US')+' km'},
+  {k:'median', t:'Median link distance', fmt:v=>v.toLocaleString('en-US')+' km'},
+  {k:'u100', t:'Links under 100 km', fmt:v=>(v*100).toFixed(1)+'%'},
+  {k:'state', t:'Same-state links', fmt:v=>(v*100).toFixed(1)+'%'},
+  {k:'region', t:'Same-region links', fmt:v=>(v*100).toFixed(1)+'%'},
+];
+function geoTable() {
+  const pols = visPols();
+  const head = `<tr><th></th>${pols.map(p=>`<th><span class="pk"><i style="background:${POLCOLOR[p]}"></i>${POLSHORT[p]}</span></th>`).join('')}</tr>`;
+  return `<table class="mt">${head}${GROWS.map(m => `<tr><td>${m.t}</td>${pols.map(p => `<td>${m.fmt(DATA.geo.stats[p][m.k])}</td>`).join('')}</tr>`).join('')}</table>`;
+}
+function nodeCard(id) {
+  const cellOf = (p, key) => { const n = NET[p].nodes.get(id); if (!n) return '<span class="a">not active</span>'; if (n[key]==null) return '<span class="a">n/a</span>';
+    return `${M[key].fmt(n[key])}<span class="rk">#${NET[p].ranks[key].get(id)}</span>`; };
+  let rows = MEASURES.map(m => `<tr><td>${m.t}</td>${POLS.map(p => `<td>${cellOf(p, m.key)}</td>`).join('')}</tr>`).join('');
+  if (S.lay==='map') rows += `<tr><td>Mean partner distance</td>${POLS.map(p => { const n = NET[p].nodes.get(id); if (!n) return '<td><span class="a">—</span></td>';
+    const ps = NET[p].adj.get(id); return `<td>${Math.round(ps.reduce((s,o)=>s+hav(id,o),0)/ps.length).toLocaleString('en-US')} km</td>`; }).join('')}</tr>`;
+  let partners = '';
+  for (const p of visPols()) {
+    const net = NET[p]; if (!net.nodes.has(id)) continue;
+    const ps = net.adj.get(id).slice().sort((a,b)=>net.nodes.get(b).deg-net.nodes.get(a).deg);
+    const byType = TYPES.map(t => [t, ps.filter(o=>TYPE(o)===t.key).length]).filter(x=>x[1]);
+    partners += `<div class="mini" style="${visPols().length>1?`color:${POLCOLOR[p]}`:''}">${visPols().length>1?POLSHORT[p]+' · ':''}${ps.length} partners · ${byType.map(([t,c])=>`${c} ${t.short}`).join(', ')}</div>
+      <div class="tags">${ps.map(o=>`<span class="tag2" data-id="${o}">${dotOf(o)}${esc(LABEL(o))}<span class="s">${net.nodes.get(o).deg}</span></span>`).join('')}</div>`;
+  }
+  const links = POLS.filter(p=>NET[p].nodes.has(id)).map(p => `<a class="btn" href="rationales.html#policy=${p}&node=${id}">Why these partners? · ${POLSHORT[p]} →</a>`).join('');
+  return `<div class="card"><div class="top"><div><div class="k">Organization</div><h3>${esc(LABEL(id))}</h3>
+      <span class="pill">${dotOf(id)}${esc(TYPE(id))}</span><span class="loc">${esc(GEO(id)[2])} · ${esc(GEO(id)[3])}</span></div>
+      <button class="x" id="closeSel" title="Clear selection"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+    <table class="mt" style="margin-top:12px"><tr><th></th>${POLS.map(p=>`<th><span class="pk"><i style="background:${POLCOLOR[p]}"></i>${POLSHORT[p]}</span></th>`).join('')}</tr>${rows}</table>
+    ${partners || '<div class="note">Not active in this policy network.</div>'}
+    <div>${links}</div></div>`;
+}
+function renderPanel() {
+  const pols = visPols();
+  const h = `<div class="pn">
+    <div class="k">Baseline · Phase 0</div>
+    <h2>${pols.length>1 ? 'Mission vs. Diffusion' : POLNAME[pols[0]]+' policy'}</h2>
+    <p class="lead">Each link joins two organizations that both expressed an intention to collaborate.</p>
+    ${S.sel!=null ? `<div class="sec">${nodeCard(S.sel)}</div>` : ''}
+    ${S.lay==='map' ? `<div class="sec"><div class="k">Geography of links <span class="sub">great-circle distance</span></div>${geoTable()}
+      <div class="note">Regions follow the U.S. Census Bureau (Northeast, Midwest, South, West).</div></div>` : ''}
+    <div class="sec"><div class="k">Network metrics <span class="sub">Full (Active)</span></div>${metricsTable()}</div>
+    <div class="sec"><div class="k">Most central organizations <span class="sub">${M[S.size].long}</span></div>
+      <div class="tops">${pols.map(p=>topList(p,S.size)).join('')}</div></div>
+    <div class="sec"><div class="k">Degree distribution <span class="sub">share of active organizations</span></div>
+      <div class="chart">${degreeChart()}</div>${pols.length>1?`<div class="ckey">${pols.map(p=>`<span class="pk"><i style="background:${POLCOLOR[p]}"></i>${POLSHORT[p]}</span>`).join('')}</div>`:''}</div>
+    <div class="sec"><div class="k">Composition by organization type</div><div class="chart">${compositionChart()}</div>
+      <div class="note">Link ends: each link counts once for each of its two organizations (sum of degrees).</div></div>
+    <div class="sec"><div class="k">Who links with whom <span class="sub">% of all links</span></div><div class="mxwrap">${pols.map(mixMatrix).join('')}</div></div>
+    <div class="sec"><div class="k">About these measures</div>
+      <div class="note">Self-loops are removed and only organizations with at least one mutual link are shown (Active). Degree = number of mutual partners. Betweenness is unnormalized. Closeness is computed within the main connected component (detached pairs: n/a). Eigenvector centrality is scaled so the highest value in each network is 1. APL is averaged over all reachable pairs. Node size uses one scale for both policies.${S.lay==='map' ? ' In the Map layout, organizations are placed at their headquarters location (Albers equal-area projection); organizations at the same location are spread on a small circle, and grey rings mark organizations without a mutual link.' : ''}</div></div>
+  </div>`;
+  const st = panel.scrollTop; panel.innerHTML = h; panel.scrollTop = st;
+  panel.querySelectorAll('[data-id]').forEach(el => { const id = +el.dataset.id;
+    el.onclick = () => select(id, true);
+    el.onmouseenter = () => { S.hover = id; refresh(); }; el.onmouseleave = () => { S.hover = null; refresh(); }; });
+  const cs = panel.querySelector('#closeSel'); if (cs) cs.onclick = () => { S.sel = null; refresh(); renderPanel(); writeHash(); };
+}
+
+/* ---------- legend ---------- */
+const legend = $('#legend');
+for (const t of TYPES) {
+  const b = document.createElement('button'); b.className = 'chip';
+  b.innerHTML = `<span class="dot" style="background:${t.fill};border:1.5px solid ${darken(t.fill,.5)};box-shadow:none"></span>${t.key}`;
+  b.onclick = () => { S.off.has(t.key) ? S.off.delete(t.key) : S.off.add(t.key); b.classList.toggle('off', S.off.has(t.key)); resetChip.classList.toggle('show', S.off.size>0); refresh(); };
+  legend.appendChild(b);
+}
+const resetChip = document.createElement('button'); resetChip.className = 'chip reset'; resetChip.textContent = 'Show all';
+resetChip.onclick = () => { S.off.clear(); legend.querySelectorAll('.chip').forEach(c=>c.classList.remove('off')); resetChip.classList.remove('show'); refresh(); };
+legend.appendChild(resetChip);
+
+/* ---------- search ---------- */
+const q = $('#q'), res = $('#results');
+const ALL = [...new Set(POLS.flatMap(p=>[...NET[p].nodes.keys()]))].sort((a,b)=>LABEL(a).localeCompare(LABEL(b)));
+let hits = [], act = 0;
+function runSearch() { const s = q.value.trim().toLowerCase(); if (!s) { res.classList.remove('open'); return; }
+  hits = ALL.filter(id=>LABEL(id).toLowerCase().includes(s)).sort((a,b)=>LABEL(a).toLowerCase().indexOf(s)-LABEL(b).toLowerCase().indexOf(s)).slice(0,10); act = 0; drawResults(); }
+function drawResults() {
+  res.innerHTML = hits.length ? hits.map((id,i) => { const inn = visPols().filter(p=>NET[p].nodes.has(id));
+    const tag = inn.length ? '' : `<span class="tag">Only in ${POLSHORT[POLS.find(p=>NET[p].nodes.has(id))]}</span>`;
+    return `<div class="res${i===act?' act':''}" data-i="${i}">${dotOf(id)}<span class="nm">${esc(LABEL(id))}</span>${tag}</div>`; }).join('')
+    : '<div class="res empty">No matching organization</div>';
+  res.classList.add('open');
+  res.querySelectorAll('.res[data-i]').forEach(r => { r.onmousedown = e => { e.preventDefault(); pick(hits[+r.dataset.i]); }; });
+}
+function pick(id) { q.value = LABEL(id); res.classList.remove('open'); q.blur();
+  if (isOff(id)) { S.off.delete(TYPE(id)); legend.querySelectorAll('.chip').forEach((c,i)=>{ if (TYPES[i] && TYPES[i].key===TYPE(id)) c.classList.remove('off'); }); resetChip.classList.toggle('show', S.off.size>0); }
+  if (!visPols().some(p=>NET[p].nodes.has(id))) { S.sel = id; setPol(POLS.find(p=>NET[p].nodes.has(id))); return; }
+  select(id, true); }
+q.addEventListener('input', runSearch); q.addEventListener('focus', runSearch);
+q.addEventListener('blur', () => setTimeout(()=>res.classList.remove('open'),120));
+q.addEventListener('keydown', e => { if (!res.classList.contains('open') || !hits.length) return;
+  if (e.key==='ArrowDown') { act=(act+1)%hits.length; drawResults(); e.preventDefault(); }
+  else if (e.key==='ArrowUp') { act=(act-1+hits.length)%hits.length; drawResults(); e.preventDefault(); }
+  else if (e.key==='Enter') { pick(hits[act]); e.preventDefault(); }
+  else if (e.key==='Escape') { res.classList.remove('open'); q.blur(); } });
+
+/* ---------- init ---------- */
+function init() { readHash(); syncLay(); syncPol(); syncSize(); buildPanes(false); renderPanel(); writeHash(); }
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(init); else init();
+</script>
+</body>
+</html>
